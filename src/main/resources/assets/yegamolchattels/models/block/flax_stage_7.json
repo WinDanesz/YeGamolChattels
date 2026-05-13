@@ -1,0 +1,6 @@
+{
+  "parent": "block/crop",
+  "textures": {
+    "crop": "yegamolchattels:blocks/flax_stage_7"
+  }
+}

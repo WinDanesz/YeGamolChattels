@@ -50,7 +50,7 @@ public class ItemClubHammer extends ItemTool
     {
         Block block = world.getBlockState(pos).getBlock();
 
-        if (block == YGCBlocks.microBlock)
+        if (block == YGCBlocks.micro_block)
         {
             block.rotateBlock(world, pos, EnumFacing.UP);
             return EnumActionResult.SUCCESS;

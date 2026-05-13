@@ -20,25 +20,25 @@ import javax.annotation.Nonnull;
 @Mod.EventBusSubscriber(modid = YeGamolChattels.MODID)
 public final class YGCBlocks
 {
-    public static final Block tikiTorch = placeholder();
+    public static final Block tiki_torch = placeholder();
     public static final Block statue = placeholder();
-    public static final Block treasurePile = placeholder();
-    public static final Block grandfatherClock = placeholder();
-    public static final Block weaponRack = placeholder();
+    public static final Block treasure_pile = placeholder();
+    public static final Block grandfather_clock = placeholder();
+    public static final Block weapon_rack = placeholder();
     public static final Block grindstone = placeholder();
     public static final Block gong = placeholder();
     public static final Block pedestal = placeholder();
-    public static final Block itemShelf = placeholder();
-    public static final Block snowGlobe = placeholder();
-    public static final Block sawBench = placeholder();
-    public static final Block tablePress = placeholder();
-    public static final Block flaxPlant = placeholder();
-    public static final Block microBlock = placeholder();
-    public static final Block lootChest = placeholder();
+    public static final Block item_shelf = placeholder();
+    public static final Block snow_globe = placeholder();
+    public static final Block plank_saw = placeholder();
+    public static final Block table_press = placeholder();
+    public static final Block flax_plant = placeholder();
+    public static final Block micro_block = placeholder();
+    public static final Block loot_chest = placeholder();
 
-    public static int blockTreasurePileRenderType;
-    public static int blockTikiTorchRenderType;
-    public static int blockMicroBlockRenderType;
+    public static int block_treasure_pile_render_type;
+    public static int block_tiki_torch_render_type;
+    public static int block_micro_block_render_type;
 
     private YGCBlocks()
     {
@@ -56,16 +56,16 @@ public final class YGCBlocks
     {
         IForgeRegistry<Block> registry = event.getRegistry();
 
-        registerBlock(registry, "tikiTorch", "tikiTorch", new BlockTikiTorch().setHardness(0.0F).setLightLevel(0.9375F), true);
+        registerBlock(registry, "tiki_torch", "tikiTorch", new BlockTikiTorch().setHardness(0.0F).setLightLevel(0.9375F), true);
         registerBlock(registry, "statue", "ygcStatue", new BlockStatue().setHardness(2.0F), true);
-        registerBlock(registry, "treasurePile", "treasurePile", new BlockTreasurePile().setHardness(0.2F), true);
-        registerBlock(registry, "grandfatherClock", "grandfatherClock", new BlockGrandfatherClock(Material.WOOD).setHardness(1.5F), true);
-        registerBlock(registry, "weaponRack", "weaponRack", new BlockWeaponRack(Material.WOOD).setHardness(1.5F), true);
+        registerBlock(registry, "treasure_pile", "treasurePile", new BlockTreasurePile().setHardness(0.2F), true);
+        registerBlock(registry, "grandfather_clock", "grandfatherClock", new BlockGrandfatherClock(Material.WOOD).setHardness(1.5F), true);
+        registerBlock(registry, "weapon_rack", "weaponRack", new BlockWeaponRack(Material.WOOD).setHardness(1.5F), true);
         registerBlock(registry, "grindstone", "grindstone", new BlockGrindstone(Material.WOOD).setHardness(1.5F), true);
         registerBlock(registry, "gong", "gong", new BlockGong(Material.IRON).setHardness(1.5F), true);
         registerBlock(registry, "pedestal", "pedestal", new BlockPedestal().setHardness(1.5F), true);
-        registerBlock(registry, "ygcItemShelf", "ygcItemShelf", new BlockItemShelf(Material.WOOD).setHardness(1.5F), true);
-        registerBlock(registry, "ygcSnowGlobe", "ygcSnowGlobe", new BlockSnowGlobe(), true);
+        registerBlock(registry, "item_shelf", "ygcItemShelf", new BlockItemShelf(Material.WOOD).setHardness(1.5F), true);
+        registerBlock(registry, "snow_globe", "ygcSnowGlobe", new BlockSnowGlobe(), true);
         registerBlock(registry, "plank_saw", "ygcSawBench", new BlockSawBench().setHardness(1.5F), true);
         registerBlock(registry, "table_press", "tablePress", new BlockTablePress().setHardness(1.5F), true);
         registerBlock(registry, "flax_plant", "ygcFlaxPlant", new BlockFlaxPlant(), false);

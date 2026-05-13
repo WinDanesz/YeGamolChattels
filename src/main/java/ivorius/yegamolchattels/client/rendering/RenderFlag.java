@@ -8,7 +8,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderFlag extends Render<EntityFlag>
 {
-    private final ResourceLocation texture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "flagCloth.png");
+    private final ResourceLocation texture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "flag_cloth.png");
 
     public RenderFlag(RenderManager renderManager)
     {

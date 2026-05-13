@@ -8,7 +8,7 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderGhost extends RenderLiving<EntityGhost>
 {
-    private final ResourceLocation texture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "ghostTexture.png");
+    private final ResourceLocation texture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "ghost_texture.png");
 
     public RenderGhost(RenderManager renderManager)
     {

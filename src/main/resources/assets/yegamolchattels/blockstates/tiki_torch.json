@@ -1,0 +1,6 @@
+{
+  "variants": {
+    "part=upper": { "model": "yegamolchattels:tiki_torch_upper" },
+    "part=lower": { "model": "yegamolchattels:tiki_torch_lower" }
+  }
+}

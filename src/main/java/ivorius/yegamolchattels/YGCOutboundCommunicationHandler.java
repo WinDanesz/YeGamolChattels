@@ -19,11 +19,11 @@ public class YGCOutboundCommunicationHandler
     {
         if (Loader.isModLoaded(MineFactoryReloaded.MOD_ID))
         {
-            MineFactoryReloaded.registerPlantableCrop(YGCBlocks.flaxPlant, YGCItems.flaxSeeds, null);
+            MineFactoryReloaded.registerPlantableCrop(YGCBlocks.flax_plant, YGCItems.flaxSeeds, null);
 
-            MineFactoryReloaded.registerHarvestableCrop(YGCBlocks.flaxPlant, 7);
+            MineFactoryReloaded.registerHarvestableCrop(YGCBlocks.flax_plant, 7);
 
-            MineFactoryReloaded.registerFertilizableCrop(YGCBlocks.flaxPlant, 7, null);
+            MineFactoryReloaded.registerFertilizableCrop(YGCBlocks.flax_plant, 7, null);
         }
     }
 }

@@ -12,7 +12,7 @@ public final class YGCCreativeTabs
         @Override
         public ItemStack createIcon()
         {
-            return YGCBlocks.snowGlobe != null ? new ItemStack(YGCBlocks.snowGlobe) : ItemStack.EMPTY;
+            return YGCBlocks.snow_globe != null ? new ItemStack(YGCBlocks.snow_globe) : ItemStack.EMPTY;
         }
     };
 

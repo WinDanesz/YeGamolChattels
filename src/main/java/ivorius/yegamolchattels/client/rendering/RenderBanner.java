@@ -8,8 +8,8 @@ import net.minecraft.util.ResourceLocation;
 
 public class RenderBanner extends Render<EntityBanner>
 {
-    private final ResourceLocation textureBannerSmall = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "bannersSmall.png");
-    private final ResourceLocation textureBannerLarge = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "bannersLarge.png");
+    private final ResourceLocation textureBannerSmall = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "banners_small.png");
+    private final ResourceLocation textureBannerLarge = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "banners_large.png");
 
     public RenderBanner(RenderManager renderManager)
     {

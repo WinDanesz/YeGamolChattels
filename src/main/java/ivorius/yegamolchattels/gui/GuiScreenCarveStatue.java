@@ -28,7 +28,7 @@ import org.lwjgl.opengl.GL12;
  */
 public class GuiScreenCarveStatue extends GuiContainer implements GuiControlListener<GuiSlider>
 {
-    private static ResourceLocation guiTexture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "guiCarving.png");
+    private static ResourceLocation guiTexture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "gui_carving.png");
 
     private GuiSlider sliderSwing;
     private GuiSlider sliderStance;

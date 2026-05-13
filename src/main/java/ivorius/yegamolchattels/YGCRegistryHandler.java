@@ -15,9 +15,9 @@ public class YGCRegistryHandler
 {
     public static void init()
     {
-        YGCBlocks.blockTreasurePileRenderType = -1;
-        YGCBlocks.blockTikiTorchRenderType = -1;
-        YGCBlocks.blockMicroBlockRenderType = -1;
+        YGCBlocks.block_treasure_pile_render_type = -1;
+        YGCBlocks.block_tiki_torch_render_type = -1;
+        YGCBlocks.block_micro_block_render_type = -1;
 
         YGCBlocks.registerTileEntities();
         registerEntities();

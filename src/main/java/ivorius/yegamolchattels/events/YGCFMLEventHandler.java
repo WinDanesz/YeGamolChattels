@@ -65,15 +65,15 @@ public class YGCFMLEventHandler
     @SubscribeEvent
     public void onItemCrafted(PlayerEvent.ItemCraftedEvent event)
     {
-        if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.itemShelf, 1, TileEntityItemShelfModel0.SHELF_WARDROBE)))
+        if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.item_shelf, 1, TileEntityItemShelfModel0.SHELF_WARDROBE)))
         {
             YGCAchievementList.trigger(event.player, YGCAchievementList.wardrobeCrafted);
         }
-        else if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.grandfatherClock)))
+        else if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.grandfather_clock)))
         {
             YGCAchievementList.trigger(event.player, YGCAchievementList.grandfatherClockCrafted);
         }
-        else if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.weaponRack)))
+        else if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.weapon_rack)))
         {
             YGCAchievementList.trigger(event.player, YGCAchievementList.weaponRackCrafted);
         }

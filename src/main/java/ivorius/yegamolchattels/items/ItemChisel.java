@@ -173,7 +173,7 @@ public class ItemChisel extends ItemTool implements MicroblockSelector
         {
             byte metadata = (byte) coord.getMetadata(world);
 
-            world.setBlockState(new BlockPos(coord.x, coord.y, coord.z), YGCBlocks.microBlock.getDefaultState(), 3);
+            world.setBlockState(new BlockPos(coord.x, coord.y, coord.z), YGCBlocks.micro_block.getDefaultState(), 3);
             TileEntity tileEntity = world.getTileEntity(new BlockPos(coord.x, coord.y, coord.z));
 
             TileEntityMicroBlock tileEntityMicroBlock = (TileEntityMicroBlock) tileEntity;
