@@ -6,16 +6,18 @@
 package ivorius.yegamolchattels.blocks;
 
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityRotatable;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.multiblock.IvTileEntityRotatable;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
 import ivorius.yegamolchattels.YeGamolChattels;
+import ivorius.yegamolchattels.utils.YGCSoundHelper;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.util.EnumParticleTypes;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
@@ -96,7 +98,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
         this.closed = false;
         this.opened = true;
 
-        IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "openState", YeGamolChattels.network);
+        NetworkHelperServer.sendTileEntityUpdatePacket(this, "openState", YeGamolChattels.network);
     }
 
     public void close()
@@ -104,7 +106,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
         this.opened = false;
         this.closed = true;
 
-        IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "openState", YeGamolChattels.network);
+        NetworkHelperServer.sendTileEntityUpdatePacket(this, "openState", YeGamolChattels.network);
     }
 
     public boolean itemAccessible()
@@ -121,7 +123,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
             if (this.chestFrame > 0F + FINISH_MARGIN)
             {
                 if (chestFrame >= CHEST_MAX - FINISH_MARGIN)
-                    this.worldObj.playSoundEffect(xCoord + 0.5, yCoord + 0.5D, zCoord + 0.5, "random.chestclosed", 0.5F, this.worldObj.rand.nextFloat() * 0.05F);
+                    YGCSoundHelper.play(this.worldObj, xCoord + 0.5, yCoord + 0.5D, zCoord + 0.5, "random.chestclosed", 0.5F, this.worldObj.rand.nextFloat() * 0.05F);
 
                 if (this.lockFall > LOCK_MIN)
                     this.lockFall -= this.lockFall * 0.2F;
@@ -148,7 +150,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
             else if (this.chestFrame < CHEST_MAX - FINISH_MARGIN)
             {
                 if (chestFrame == 0.0f)
-                    this.worldObj.playSoundEffect(xCoord + 0.5, yCoord + 0.5D, zCoord + 0.5, "random.chestopen", 0.5F, this.worldObj.rand.nextFloat() * 0.05F);
+                    YGCSoundHelper.play(this.worldObj, xCoord + 0.5, yCoord + 0.5D, zCoord + 0.5, "random.chestopen", 0.5F, this.worldObj.rand.nextFloat() * 0.05F);
 
                 this.lockFrame = LOCK_MAX;
 
@@ -172,7 +174,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
                         float velX = (this.worldObj.rand.nextInt(100) * velocity) - (this.worldObj.rand.nextInt(100) * velocity);
                         float velY = (this.worldObj.rand.nextInt(100) * velocity) - (this.worldObj.rand.nextInt(100) * velocity);
                         float velZ = (this.worldObj.rand.nextInt(100) * velocity) - (this.worldObj.rand.nextInt(100) * velocity);
-                        this.worldObj.spawnParticle("smoke", this.xCoord + 0.5F, this.yCoord + 0.5F, this.zCoord + 0.5F, velX, velY, velZ);
+                        this.worldObj.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, this.xCoord + 0.5F, this.yCoord + 0.5F, this.zCoord + 0.5F, velX, velY, velZ);
                     }
                 }
             }
@@ -180,7 +182,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt)
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
     {
         NBTTagList tagList = new NBTTagList();
         for (ItemStack loot : this.loot)
@@ -202,6 +204,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
         nbt.setBoolean("closed", this.closed);
 
         super.writeToNBT(nbt);
+        return nbt;
     }
 
     @Override
@@ -212,7 +215,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
         for (int i = 0; i < tagList.tagCount(); i++)
         {
             NBTTagCompound tag = tagList.getCompoundTagAt(i);
-            ItemStack item = ItemStack.loadItemStackFromNBT(tag);
+            ItemStack item = new ItemStack(tag);
             if (item != null)
                 addLoot(item);
         }
@@ -251,9 +254,9 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
     {
         for (int i = 0; i < getSizeInventory(); i++)
         {
-            ItemStack stack = getStackInSlotOnClosing(i);
+            ItemStack stack = removeStackFromSlot(i);
             if (stack != null)
-                worldObj.spawnEntityInWorld(new EntityItem(worldObj, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, stack));
+                worldObj.spawnEntity(new EntityItem(worldObj, xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, stack));
         }
     }
 
@@ -276,25 +279,25 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
         {
             ItemStack itemstack;
 
-            if (this.loot[slot].stackSize <= amount)
+            if (this.loot[slot].getCount() <= amount)
             {
                 itemstack = this.loot[slot];
                 this.loot[slot] = null;
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
             else
             {
                 itemstack = this.loot[slot].splitStack(amount);
 
-                if (this.loot[slot].stackSize == 0)
+                if (this.loot[slot].getCount() == 0)
                 {
                     this.loot[slot] = null;
                 }
 
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
         }
@@ -305,7 +308,7 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
     }
 
     @Override
-    public ItemStack getStackInSlotOnClosing(int slot)
+    public ItemStack removeStackFromSlot(int slot)
     {
         if (this.loot[slot] != null)
         {
@@ -322,21 +325,21 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
     {
         this.loot[slot] = stack;
 
-        if (stack != null && stack.stackSize > this.getInventoryStackLimit())
-            stack.stackSize = this.getInventoryStackLimit();
+        if (stack != null && stack.getCount() > this.getInventoryStackLimit())
+            stack.setCount(this.getInventoryStackLimit());
 
         this.markDirty();
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        notifyBlockUpdate();
     }
 
     @Override
-    public String getInventoryName()
+    public String getName()
     {
         return "container.lootChest";
     }
 
     @Override
-    public boolean hasCustomInventoryName()
+    public boolean hasCustomName()
     {
         return false;
     }
@@ -348,19 +351,19 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player)
+    public boolean isUsableByPlayer(EntityPlayer player)
     {
-        return this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
+        return this.worldObj.getTileEntity(this.pos) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
     }
 
     @Override
-    public void openInventory()
+    public void openInventory(EntityPlayer player)
     {
 
     }
 
     @Override
-    public void closeInventory()
+    public void closeInventory(EntityPlayer player)
     {
 
     }
@@ -369,5 +372,40 @@ public class TileEntityLootChest extends IvTileEntityRotatable implements IInven
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
         return true;
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+        for (ItemStack stack : loot)
+        {
+            if (stack != null && !stack.isEmpty())
+                return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int getField(int id)
+    {
+        return 0;
+    }
+
+    @Override
+    public void setField(int id, int value)
+    {
+    }
+
+    @Override
+    public int getFieldCount()
+    {
+        return 0;
+    }
+
+    @Override
+    public void clear()
+    {
+        Arrays.fill(loot, null);
     }
 }

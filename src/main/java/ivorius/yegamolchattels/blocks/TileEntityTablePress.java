@@ -1,21 +1,24 @@
 package ivorius.yegamolchattels.blocks;
 
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.ivtoolkit.entities.IvEntityHelper;
-import ivorius.ivtoolkit.network.*;
-import ivorius.ivtoolkit.tools.IvSideClient;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.achievements.YGCAchievementList;
 import ivorius.yegamolchattels.gui.YGCGuiHandler;
 import ivorius.yegamolchattels.items.YGCItems;
+import ivorius.yegamolchattels.network.ClientEventHandler;
+import ivorius.yegamolchattels.network.NetworkHelperClient;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.utils.PlayerItemHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 
 import java.util.Arrays;
 
@@ -45,14 +48,14 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
                 if (!worldObj.isRemote)
                 {
                     containedItem = stack.copy();
-                    containedItem.stackSize = 1;
+                    containedItem.setCount(1);
 
-                    stack.stackSize--;
+                    stack.shrink(1);
 
                     clearRefinement();
 
                     markDirty();
-                    worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                    notifyBlockUpdate();
                 }
 
                 return true;
@@ -68,16 +71,16 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
         {
             if (!worldObj.isRemote)
             {
-                if (IvEntityHelper.addAsCurrentItem(player, containedItem))
+                if (PlayerItemHelper.addAsCurrentItem(player, containedItem))
                 {
                     if (containedItem.getItem() == YGCItems.refinedPlank)
-                        player.triggerAchievement(YGCAchievementList.refinedPlank);
+                        YGCAchievementList.trigger(player, YGCAchievementList.refinedPlank);
 
                     containedItem = null;
                     clearRefinement();
 
                     markDirty();
-                    worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                    notifyBlockUpdate();
                 }
             }
 
@@ -95,7 +98,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
         if (isCorrectTool(usedTool))
         {
             if (!worldObj.isRemote)
-                IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "refinementGui", YeGamolChattels.network, player);
+                NetworkHelperServer.sendTileEntityUpdatePacket(this, "refinementGui", YeGamolChattels.network, player);
 
             return true;
         }
@@ -111,13 +114,13 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
     public void refineWithItem(EntityPlayer entityPlayer, int usedItem, float x, float y, float speed)
     {
         speed = speed * 0.3f;
-        int speedInfl = MathHelper.floor_float(speed) + ((worldObj.rand.nextFloat() < speed % 1.0f) ? 1 : 0);
+        int speedInfl = MathHelper.floor(speed) + ((worldObj.rand.nextFloat() < speed % 1.0f) ? 1 : 0);
 
-        int startSlotX = MathHelper.floor_float(x - 1.5f + 0.5f);
-        int endSlotX = MathHelper.floor_float(x + 1.5f + 0.5f);
+        int startSlotX = MathHelper.floor(x - 1.5f + 0.5f);
+        int endSlotX = MathHelper.floor(x + 1.5f + 0.5f);
 
-        int startSlotY = MathHelper.floor_float(y - 1.5f + 0.5f);
-        int endSlotY = MathHelper.floor_float(y + 1.5f + 0.5f);
+        int startSlotY = MathHelper.floor(y - 1.5f + 0.5f);
+        int endSlotY = MathHelper.floor(y + 1.5f + 0.5f);
 
         for (int slotX = startSlotX; slotX < endSlotX; slotX++)
         {
@@ -134,7 +137,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
         }
 
         if (worldObj.isRemote)
-            IvNetworkHelperClient.sendTileEntityEventPacket(this, "plankRefinement", YeGamolChattels.network, entityPlayer.inventory.currentItem, speedInfl);
+            NetworkHelperClient.sendTileEntityEventPacket(this, "plankRefinement", YeGamolChattels.network, entityPlayer.inventory.currentItem, speedInfl);
 
         if (isRefinementComplete())
             completeRefinement(entityPlayer.inventory.getStackInSlot(usedItem));
@@ -173,7 +176,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
                 YeGamolChattels.logger.error("Unknown refinement result for '" + containedItem + "'");
 
             markDirty();
-            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            notifyBlockUpdate();
         }
     }
 
@@ -202,7 +205,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
     {
         super.readFromNBT(par1nbtTagCompound);
 
-        containedItem = ItemStack.loadItemStackFromNBT(par1nbtTagCompound.getCompoundTag("containedItem"));
+        containedItem = new ItemStack(par1nbtTagCompound.getCompoundTag("containedItem"));
 
         this.ticksRefinedPerSlot = par1nbtTagCompound.getIntArray("ticksRefinedPerSlot");
         if (ticksRefinedPerSlot == null || ticksRefinedPerSlot.length != REFINEMENT_SLOTS_X * REFINEMENT_SLOTS_Y)
@@ -212,7 +215,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
@@ -224,6 +227,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
         }
 
         par1nbtTagCompound.setIntArray("ticksRefinedPerSlot", ticksRefinedPerSlot);
+        return par1nbtTagCompound;
     }
 
     @Override
@@ -248,7 +252,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
                 ticksRefinedPerSlot[i] = buffer.readInt();
             }
 
-            IvSideClient.getClientPlayer().openGui(YeGamolChattels.instance, YGCGuiHandler.plankRefinementGuiID, worldObj, xCoord, yCoord, zCoord);
+            Minecraft.getMinecraft().player.openGui(YeGamolChattels.instance, YGCGuiHandler.plankRefinementGuiID, worldObj, xCoord, yCoord, zCoord);
         }
     }
 
@@ -284,7 +288,7 @@ public class TileEntityTablePress extends IvTileEntityMultiBlock implements Part
                 }
 
                 usedStack.damageItem(1 + speedInfl, player);
-                if (usedStack.stackSize <= 0)
+                if (usedStack.getCount() <= 0)
                 {
                     player.inventory.setInventorySlotContents(usedItem, null);
                     PlanksRefinementRegistry.Entry entry = getCurrentResult(usedStack);

@@ -5,18 +5,12 @@
 
 package ivorius.yegamolchattels;
 
-import cpw.mods.fml.common.Mod;
-import cpw.mods.fml.common.Mod.EventHandler;
-import cpw.mods.fml.common.Mod.Instance;
-import cpw.mods.fml.common.SidedProxy;
-import cpw.mods.fml.common.event.FMLInitializationEvent;
-import cpw.mods.fml.common.event.FMLPostInitializationEvent;
-import cpw.mods.fml.common.event.FMLPreInitializationEvent;
-import cpw.mods.fml.common.network.NetworkRegistry;
-import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
-import cpw.mods.fml.common.registry.GameRegistry;
-import cpw.mods.fml.relauncher.Side;
-import ivorius.ivtoolkit.network.*;
+import ivorius.yegamolchattels.network.PacketGuiAction;
+import ivorius.yegamolchattels.network.PacketGuiActionHandler;
+import ivorius.yegamolchattels.network.PacketTileEntityClientEvent;
+import ivorius.yegamolchattels.network.PacketTileEntityClientEventHandler;
+import ivorius.yegamolchattels.network.PacketTileEntityUpdate;
+import ivorius.yegamolchattels.network.PacketTileEntityUpdateHandler;
 import ivorius.yegamolchattels.achievements.YGCAchievementList;
 import ivorius.yegamolchattels.blocks.*;
 import ivorius.yegamolchattels.crafting.YGCCrafting;
@@ -26,20 +20,29 @@ import ivorius.yegamolchattels.gui.YGCGuiHandler;
 import ivorius.yegamolchattels.items.*;
 import ivorius.yegamolchattels.materials.YGCMaterials;
 import ivorius.yegamolchattels.worldgen.WorldGenFlax;
-import net.minecraft.creativetab.CreativeTabs;
-import net.minecraft.item.Item;
 import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.fml.common.Mod.EventHandler;
+import net.minecraftforge.fml.common.SidedProxy;
+import net.minecraftforge.fml.common.event.FMLInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
+import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
+import net.minecraftforge.fml.common.network.NetworkRegistry;
+import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
+import net.minecraftforge.fml.common.registry.GameRegistry;
+import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = YeGamolChattels.MODID, version = YeGamolChattels.VERSION, name = YeGamolChattels.NAME, guiFactory = "ivorius.yegamolchattels.gui.YGCConfigGuiFactory",
+        acceptedMinecraftVersions = "1.12.2",
         dependencies = "required-after:ivtoolkit")
 public class YeGamolChattels
 {
     public static final String MODID = "yegamolchattels";
-    public static final String VERSION = "1.1.2";
+    public static final String VERSION = Tags.VERSION;
     public static final String NAME = "Ye Gamol Chattels";
 
-    @Instance(value = MODID)
+    @Mod.Instance(MODID)
     public static YeGamolChattels instance;
 
     @SidedProxy(clientSide = "ivorius.yegamolchattels.client.ClientProxy", serverSide = "ivorius.yegamolchattels.server.ServerProxy")
@@ -91,11 +94,9 @@ public class YeGamolChattels
     public void load(FMLInitializationEvent event)
     {
         network = NetworkRegistry.INSTANCE.newSimpleChannel(MODID);
-        network.registerMessage(PacketExtendedEntityPropertiesDataHandler.class, PacketExtendedEntityPropertiesData.class, 0, Side.CLIENT);
-        network.registerMessage(PacketEntityDataHandler.class, PacketEntityData.class, 1, Side.CLIENT);
-        network.registerMessage(PacketTileEntityDataHandler.class, PacketTileEntityData.class, 3, Side.CLIENT);
-        network.registerMessage(PacketGuiActionHandler.class, PacketGuiAction.class, 4, Side.SERVER);
-        network.registerMessage(PacketTileEntityClientEventHandler.class, PacketTileEntityClientEvent.class, 5, Side.SERVER);
+        network.registerMessage(PacketTileEntityUpdateHandler.class, PacketTileEntityUpdate.class, 0, Side.CLIENT);
+        network.registerMessage(PacketGuiActionHandler.class, PacketGuiAction.class, 1, Side.SERVER);
+        network.registerMessage(PacketTileEntityClientEventHandler.class, PacketTileEntityClientEvent.class, 2, Side.SERVER);
 
         proxy.registerRenderers();
 

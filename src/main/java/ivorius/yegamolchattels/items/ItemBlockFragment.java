@@ -1,16 +1,10 @@
-/*
- *  Copyright (c) 2014, Lukas Tenbrink.
- *  * http://lukas.axxim.net
- */
-
 package ivorius.yegamolchattels.items;
 
 import ivorius.ivtoolkit.blocks.BlockCoord;
 import ivorius.ivtoolkit.blocks.IvBlockCollection;
 import ivorius.yegamolchattels.blocks.TileEntityMicroBlock;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.client.util.ITooltipFlag;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -20,43 +14,45 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagByte;
 import net.minecraft.nbt.NBTTagString;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import java.util.List;
 
-/**
- * Created by lukas on 11.07.14.
- */
 public class ItemBlockFragment extends Item implements MicroblockSelector
 {
     public static void setFragment(ItemStack stack, ItemChisel.BlockData blockData)
     {
-        stack.setTagInfo("blockFragment", new NBTTagString(Block.blockRegistry.getNameForObject(blockData.block)));
+        stack.setTagInfo("blockFragment", new NBTTagString(String.valueOf(Block.REGISTRY.getNameForObject(blockData.block))));
         stack.setTagInfo("blockFragmentMeta", new NBTTagByte(blockData.meta));
     }
 
     public static ItemChisel.BlockData getFragment(ItemStack stack)
     {
         if (!stack.hasTagCompound() || !stack.getTagCompound().hasKey("blockFragment"))
-            return new ItemChisel.BlockData(Blocks.air, (byte)0); // Default
+            return new ItemChisel.BlockData(Blocks.AIR, (byte) 0);
 
-        return new ItemChisel.BlockData((Block) Block.blockRegistry.getObject(stack.getTagCompound().getString("blockFragment")), stack.getTagCompound().getByte("blockFragmentMeta"));
+        return new ItemChisel.BlockData((Block) Block.REGISTRY.getObject(new ResourceLocation(stack.getTagCompound().getString("blockFragment"))), stack.getTagCompound().getByte("blockFragmentMeta"));
     }
 
     @Override
-    public boolean onItemUse(ItemStack itemStack, EntityPlayer player, World world, int x, int y, int z, int side, float hitX, float hitY, float hitZ)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        return addBlock(x, y, z, player, itemStack);
+        return addBlock(pos.getX(), pos.getY(), pos.getZ(), player, player.getHeldItem(hand)) ? EnumActionResult.SUCCESS : EnumActionResult.FAIL;
     }
 
     public static boolean addBlock(int x, int y, int z, EntityPlayer player, ItemStack usedStack)
     {
         if (addBlock(player, x, y, z, getFragment(usedStack)))
         {
-            usedStack.stackSize--;
+            usedStack.shrink(1);
             player.inventory.markDirty();
-
             return true;
         }
 
@@ -65,36 +61,35 @@ public class ItemBlockFragment extends Item implements MicroblockSelector
 
     public static boolean addBlock(Entity entity, int hoverX, int hoverY, int hoverZ, ItemChisel.BlockData blockFragment)
     {
-        World world = entity.worldObj;
+        World world = entity.world;
         ItemChisel.MicroBlockFragment hoveredFragment = ItemChisel.getHoveredFragment(entity, hoverX, hoverY, hoverZ);
 
-        if (hoveredFragment != null)
+        if (hoveredFragment == null)
+            return false;
+
+        hoveredFragment = hoveredFragment.getOpposite();
+        BlockCoord fragmentCoord = hoveredFragment.getCoord();
+        BlockPos pos = new BlockPos(fragmentCoord.x, fragmentCoord.y, fragmentCoord.z);
+        TileEntity tileEntity = world.getTileEntity(pos);
+
+        if (!(tileEntity instanceof TileEntityMicroBlock))
         {
-            hoveredFragment = hoveredFragment.getOpposite();
-            BlockCoord fragmentCoord = hoveredFragment.getCoord();
+            ItemChisel.convertToMicroBlock(world, fragmentCoord);
+            tileEntity = world.getTileEntity(pos);
+        }
 
-            TileEntity tileEntity = world.getTileEntity(fragmentCoord.x, fragmentCoord.y, fragmentCoord.z);
-
-            if (!(tileEntity instanceof TileEntityMicroBlock))
+        if (tileEntity instanceof TileEntityMicroBlock)
+        {
+            TileEntityMicroBlock tileEntityMicroBlock = (TileEntityMicroBlock) tileEntity;
+            IvBlockCollection collection = tileEntityMicroBlock.getBlockCollection();
+            Block hitInternalBlock = collection.getBlock(hoveredFragment.getInternalCoord());
+            if (hitInternalBlock == Blocks.AIR)
             {
-                ItemChisel.convertToMicroBlock(world, fragmentCoord);
-                tileEntity = world.getTileEntity(fragmentCoord.x, fragmentCoord.y, fragmentCoord.z);
-            }
+                collection.setBlockAndMetadata(hoveredFragment.getInternalCoord(), blockFragment.block, blockFragment.meta);
+                if (tileEntityMicroBlock.validateBeingMicroblock())
+                    tileEntityMicroBlock.markCacheInvalid();
 
-            if (tileEntity instanceof TileEntityMicroBlock)
-            {
-                TileEntityMicroBlock tileEntityMicroBlock = (TileEntityMicroBlock) tileEntity;
-                IvBlockCollection collection = tileEntityMicroBlock.getBlockCollection();
-
-                Block hitInternalBlock = collection.getBlock(hoveredFragment.getInternalCoord());
-                if (hitInternalBlock.getMaterial() == Material.air)
-                {
-                    collection.setBlockAndMetadata(hoveredFragment.getInternalCoord(), blockFragment.block, blockFragment.meta);
-                    if (tileEntityMicroBlock.validateBeingMicroblock())
-                        tileEntityMicroBlock.markCacheInvalid();
-
-                    return true;
-                }
+                return true;
             }
         }
 
@@ -102,19 +97,11 @@ public class ItemBlockFragment extends Item implements MicroblockSelector
     }
 
     @Override
-    public void addInformation(ItemStack stack, EntityPlayer player, List list, boolean par4)
+    public void addInformation(ItemStack stack, @Nullable World world, List<String> list, ITooltipFlag flag)
     {
-        super.addInformation(stack, player, list, par4);
-
         ItemChisel.BlockData data = getFragment(stack);
         if (data != null)
             list.add(ItemMicroBlock.getLocalizedName(data));
-    }
-
-    @Override
-    public void registerIcons(IIconRegister par1IconRegister)
-    {
-
     }
 
     @Override

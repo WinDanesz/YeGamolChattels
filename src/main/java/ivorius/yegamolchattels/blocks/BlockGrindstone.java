@@ -1,14 +1,14 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class BlockGrindstone extends Block
@@ -19,55 +19,53 @@ public class BlockGrindstone extends Block
     }
 
     @Override
-    public int getRenderType()
+    public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return -1;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public boolean isOpaqueCube()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean renderAsNormalBlock()
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public boolean onBlockActivated(World par1World, int par2, int par3, int par4, EntityPlayer par5EntityPlayer, int par6, float par7, float par8, float par9)
+    public boolean isFullCube(IBlockState state)
     {
-        TileEntity tileEntity = par1World.getTileEntity(par2, par3, par4);
-
-        if (tileEntity instanceof TileEntityGrindstone)
-        {
-            TileEntityGrindstone tileEntityGrindstone = (TileEntityGrindstone) tileEntity;
-
-            if (par5EntityPlayer.getHeldItem() != null)
-            {
-                if (!tileEntityGrindstone.tryApplyingItem(par5EntityPlayer.getHeldItem(), par5EntityPlayer))
-                    tileEntityGrindstone.tryRepairingItem(par5EntityPlayer.getHeldItem(), par5EntityPlayer);
-            }
-            else
-                tileEntityGrindstone.increaseGrindstoneRotation();
-
-            return true;
-        }
-
         return false;
     }
 
     @Override
-    public boolean hasTileEntity(int metadata)
+    public boolean hasTileEntity(IBlockState state)
     {
         return true;
     }
 
     @Override
-    public TileEntity createTileEntity(World var1, int i)
+    public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TileEntityGrindstone();
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    {
+        TileEntity tileEntity = world.getTileEntity(pos);
+        if (tileEntity instanceof TileEntityGrindstone)
+        {
+            TileEntityGrindstone grindstone = (TileEntityGrindstone) tileEntity;
+            if (!player.getHeldItem(hand).isEmpty())
+            {
+                if (!grindstone.tryApplyingItem(player.getHeldItem(hand), player))
+                    grindstone.tryRepairingItem(player.getHeldItem(hand), player);
+            }
+            else
+            {
+                grindstone.increaseGrindstoneRotation();
+            }
+            return true;
+        }
+        return false;
     }
 }

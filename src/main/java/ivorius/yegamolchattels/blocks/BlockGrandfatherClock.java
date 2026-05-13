@@ -1,15 +1,12 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.init.Blocks;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.item.Item;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.Random;
@@ -22,60 +19,44 @@ public class BlockGrandfatherClock extends Block
     }
 
     @Override
-    public int getRenderType()
+    public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return -1;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public Item getItemDropped(int par1, Random par2Random, int par3)
-    {
-        if ((par1 & 1) != 0)
-        {
-            return Item.getItemFromBlock(Blocks.air);
-        }
-
-        return super.getItemDropped(par1, par2Random, par3);
-    }
-
-    @Override
-    public boolean isOpaqueCube()
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public boolean hasTileEntity(int metadata)
+    public boolean isFullCube(IBlockState state)
+    {
+        return false;
+    }
+
+    @Override
+    public boolean hasTileEntity(IBlockState state)
     {
         return true;
     }
 
     @Override
-    public TileEntity createTileEntity(World var1, int i)
+    public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TileEntityGrandfatherClock();
     }
 
     @Override
-    public void onNeighborBlockChange(World par1World, int par2, int par3, int par4, Block par5)
+    public Item getItemDropped(IBlockState state, Random rand, int fortune)
     {
-        super.onNeighborBlockChange(par1World, par2, par3, par4, par5);
-
-        dropClockIfCantStay(par1World, par2, par3, par4);
+        return Item.getItemFromBlock(this);
     }
 
-    public void dropClockIfCantStay(World world, int x, int y, int z)
+    @Override
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block blockIn, BlockPos fromPos)
     {
-        int type = world.getBlockMetadata(x, y, z) & 1;
-
-        if (type == 0 && world.getBlock(x, y + 1, z) != this)
-        {
-            dropBlockAsItem(world, x, y, z, world.getBlockMetadata(x, y, z), 0);
-            world.setBlock(x, y, z, Blocks.air, 0, 3);
-        }
-        if (type == 1 && world.getBlock(x, y - 1, z) != this)
-        {
-            world.setBlock(x, y, z, Blocks.air, 0, 3);
-        }
+        super.neighborChanged(state, world, pos, blockIn, fromPos);
     }
 }

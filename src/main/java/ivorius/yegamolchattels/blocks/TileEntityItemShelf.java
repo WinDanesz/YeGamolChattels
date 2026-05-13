@@ -5,11 +5,10 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.ivtoolkit.entities.IvEntityHelper;
-import ivorius.ivtoolkit.raytracing.IvRaytraceableObject;
-import ivorius.ivtoolkit.raytracing.IvRaytracedIntersection;
-import ivorius.ivtoolkit.raytracing.IvRaytracerMC;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
+import ivorius.yegamolchattels.raytracing.IvRaytraceableObject;
+import ivorius.yegamolchattels.raytracing.IvRaytracedIntersection;
+import ivorius.yegamolchattels.raytracing.IvRaytracerMC;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
@@ -17,7 +16,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 
@@ -79,7 +78,7 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
 
             if (var5 >= 0 && var5 < this.storedItems.length)
             {
-                this.storedItems[var5] = ItemStack.loadItemStackFromNBT(var4);
+                this.storedItems[var5] = new ItemStack(var4);
             }
         }
 
@@ -99,7 +98,7 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
@@ -127,6 +126,7 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
 
         par1nbtTagCompound.setInteger("ticksAlive", ticksAlive);
         par1nbtTagCompound.setInteger("randomSeed", randomSeed);
+        return par1nbtTagCompound;
     }
 
     public boolean onRightClick(EntityPlayer player, ItemStack stack, int side)
@@ -157,12 +157,12 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
                     {
                         if (stack != null && tryStoringItemInSlot(slotNumber, stack))
                         {
-                            player.inventory.mainInventory[player.inventory.currentItem] = null;
-                            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                            player.inventory.mainInventory.set(player.inventory.currentItem, ItemStack.EMPTY);
+                            notifyBlockUpdate();
                         }
                         else if (tryEquippingItemOnPlayer(slotNumber, player))
                         {
-                            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                            notifyBlockUpdate();
                         }
 
                         return true;
@@ -195,7 +195,7 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
         for (int i = 0; i < getItemSlots(); i++)
             this.tryDroppingItem(i);
 
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        notifyBlockUpdate();
     }
 
     public abstract int getItemSlots();
@@ -268,11 +268,11 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
             double shiftY = worldObj.rand.nextFloat() * 0.2D + 1.1D;
             double shiftZ = worldObj.rand.nextFloat() * dropRange + (1.0F - dropRange) * 0.5D;
             EntityItem entityItem = new EntityItem(worldObj, xCoord + shiftX, yCoord + shiftY, zCoord + shiftZ, storedItems[slot]);
-            entityItem.delayBeforeCanPickup = 10;
-            worldObj.spawnEntityInWorld(entityItem);
+            entityItem.setPickupDelay(10);
+            worldObj.spawnEntity(entityItem);
 
             storedItems[slot] = null;
-            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            notifyBlockUpdate();
         }
     }
 
@@ -318,23 +318,23 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
         {
             ItemStack itemstack;
 
-            if (this.storedItems[slot].stackSize <= amount)
+            if (this.storedItems[slot].getCount() <= amount)
             {
                 itemstack = this.storedItems[slot];
                 this.storedItems[slot] = null;
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
             else
             {
                 itemstack = this.storedItems[slot].splitStack(amount);
 
-                if (this.storedItems[slot].stackSize == 0)
+                if (this.storedItems[slot].getCount() == 0)
                     this.storedItems[slot] = null;
 
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
         }
@@ -345,7 +345,7 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
     }
 
     @Override
-    public ItemStack getStackInSlotOnClosing(int slot)
+    public ItemStack removeStackFromSlot(int slot)
     {
         if (this.storedItems[slot] != null)
         {
@@ -362,21 +362,21 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
     {
         this.storedItems[slot] = stack;
 
-        if (stack != null && stack.stackSize > this.getInventoryStackLimit())
-            stack.stackSize = this.getInventoryStackLimit();
+        if (stack != null && stack.getCount() > this.getInventoryStackLimit())
+            stack.setCount(this.getInventoryStackLimit());
 
         this.markDirty();
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        notifyBlockUpdate();
     }
 
     @Override
-    public String getInventoryName()
+    public String getName()
     {
         return "container.ygcItemShelf";
     }
 
     @Override
-    public boolean hasCustomInventoryName()
+    public boolean hasCustomName()
     {
         return false;
     }
@@ -388,19 +388,19 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player)
+    public boolean isUsableByPlayer(EntityPlayer player)
     {
-        return this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
+        return this.worldObj.getTileEntity(this.pos) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
     }
 
     @Override
-    public void openInventory()
+    public void openInventory(EntityPlayer player)
     {
 
     }
 
     @Override
-    public void closeInventory()
+    public void closeInventory(EntityPlayer player)
     {
 
     }
@@ -409,5 +409,41 @@ public abstract class TileEntityItemShelf extends IvTileEntityMultiBlock impleme
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
         return true;
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+        for (ItemStack stack : storedItems)
+        {
+            if (stack != null && !stack.isEmpty())
+                return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int getField(int id)
+    {
+        return 0;
+    }
+
+    @Override
+    public void setField(int id, int value)
+    {
+    }
+
+    @Override
+    public int getFieldCount()
+    {
+        return 0;
+    }
+
+    @Override
+    public void clear()
+    {
+        for (int i = 0; i < storedItems.length; i++)
+            storedItems[i] = null;
     }
 }

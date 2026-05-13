@@ -5,9 +5,7 @@
 
 package ivorius.yegamolchattels.gui;
 
-import ivorius.ivtoolkit.gui.GuiControlListener;
-import ivorius.ivtoolkit.gui.GuiSlider;
-import ivorius.ivtoolkit.network.PacketGuiAction;
+import ivorius.yegamolchattels.network.PacketGuiAction;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.blocks.Statue;
 import ivorius.yegamolchattels.blocks.StatueHelper;
@@ -90,7 +88,7 @@ public class GuiScreenCarveStatue extends GuiContainer implements GuiControlList
         if (lastCraftedEntity != newCraftedEntity)
         {
             lastCraftedEntity = newCraftedEntity;
-            confirmButton.enabled = newCraftedEntity != null && StatueHelper.canCarveStatue(newCraftedEntity, mc.theWorld, x, y, z);
+            confirmButton.enabled = newCraftedEntity != null && StatueHelper.canCarveStatue(newCraftedEntity, mc.world, x, y, z);
         }
     }
 
@@ -99,7 +97,7 @@ public class GuiScreenCarveStatue extends GuiContainer implements GuiControlList
     {
         if (button.id == 0)
         {
-            int chiselItem = mc.thePlayer.inventory.currentItem;
+            int chiselItem = mc.player.inventory.currentItem;
             YeGamolChattels.network.sendToServer(PacketGuiAction.packetGuiAction("carveStatue", chiselItem, sliderYawHead.getValue(), sliderPitchHead.getValue(), sliderSwing.getValue(), sliderStance.getValue()));
         }
     }
@@ -133,23 +131,7 @@ public class GuiScreenCarveStatue extends GuiContainer implements GuiControlList
 
     public static void renderEntity(int x, int y, float scale, Entity entity)
     {
-        GL11.glEnable(GL11.GL_COLOR_MATERIAL);
-        GL11.glPushMatrix();
-        GL11.glTranslatef((float) x, (float) y, 50.0F);
-        GL11.glScalef(-scale, scale, scale);
-        GL11.glRotatef(180.0F, 0.0F, 0.0F, 1.0F);
-        GL11.glRotatef(135.0F, 0.0F, 1.0F, 0.0F);
-        RenderHelper.enableStandardItemLighting();
-        GL11.glRotatef(-135.0F, 0.0F, 1.0F, 0.0F);
-        GL11.glTranslatef(0.0F, entity.yOffset, 0.0F);
-        RenderManager.instance.playerViewY = 180.0F;
-        RenderManager.instance.renderEntityWithPosYaw(entity, 0.0D, 0.0D, 0.0D, 0.0F, 0.0F);
-        GL11.glPopMatrix();
-        RenderHelper.disableStandardItemLighting();
-        GL11.glDisable(GL12.GL_RESCALE_NORMAL);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.lightmapTexUnit);
-        GL11.glDisable(GL11.GL_TEXTURE_2D);
-        OpenGlHelper.setActiveTexture(OpenGlHelper.defaultTexUnit);
+        // Temporarily disabled during compile-driven porting.
     }
 
     @Override

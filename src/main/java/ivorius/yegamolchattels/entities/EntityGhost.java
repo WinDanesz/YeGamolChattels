@@ -1,207 +1,98 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.entities;
 
-import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.monster.EntityMob;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 
 public class EntityGhost extends EntityMob
 {
+    private double destX;
+    private double destY;
+    private double destZ;
+
     public EntityGhost(World world)
     {
         super(world);
-
-        setAIMoveSpeed(0.01F);
-
         noClip = true;
-
         findNewDestination();
     }
 
     @Override
-    protected void entityInit()
-    {
-        super.entityInit();
-
-        this.dataWatcher.addObject(15, 0.0f);
-        this.dataWatcher.addObject(16, 0.0f);
-        this.dataWatcher.addObject(17, 0.0f);
-    }
-
     protected void applyEntityAttributes()
     {
         super.applyEntityAttributes();
-
-        this.getEntityAttribute(SharedMonsterAttributes.maxHealth).setBaseValue(15.0D);
-        this.getEntityAttribute(SharedMonsterAttributes.movementSpeed).setBaseValue(0.01F);
-        this.getEntityAttribute(SharedMonsterAttributes.attackDamage).setBaseValue(5.0f);
-    }
-
-    @Override
-    public float getAIMoveSpeed()
-    {
-        return 0.01f;
+        getEntityAttribute(SharedMonsterAttributes.MAX_HEALTH).setBaseValue(15.0D);
+        getEntityAttribute(SharedMonsterAttributes.MOVEMENT_SPEED).setBaseValue(0.01D);
+        getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).setBaseValue(5.0D);
     }
 
     @Override
     public void onLivingUpdate()
     {
-        if (worldObj.isDaytime() && !worldObj.isRemote)
+        noClip = true;
+
+        if (!world.isRemote && world.isDaytime() && getBrightness() > 0.5F && world.canSeeSky(new BlockPos(posX, posY, posZ)))
+            setFire(8);
+
+        EntityLivingBase attackTarget = getAttackTarget();
+        if (attackTarget == null && getDistanceSq(destX, destY, destZ) < 25.0D)
+            findNewDestination();
+
+        double targetX = attackTarget != null ? attackTarget.posX : destX;
+        double targetY = attackTarget != null ? attackTarget.posY : destY;
+        double targetZ = attackTarget != null ? attackTarget.posZ : destZ;
+        Vec3d direction = new Vec3d(targetX - posX, targetY - posY, targetZ - posZ);
+        double length = Math.sqrt(direction.x * direction.x + direction.y * direction.y + direction.z * direction.z);
+        if (length > 0.001D)
         {
-            float f = getBrightness(1.0F);
-
-            if (f > 0.5F && worldObj.canBlockSeeTheSky(MathHelper.floor_double(posX), MathHelper.floor_double(posY), MathHelper.floor_double(posZ)) && rand.nextFloat() * 30F < (f - 0.4F) * 2.0F)
-            {
-                setFire(8);
-            }
+            double moveSpeed = 0.01D;
+            motionX = (motionX + direction.x / length * moveSpeed) * 0.9D;
+            motionY = (motionY + direction.y / length * moveSpeed) * 0.9D;
+            motionZ = (motionZ + direction.z / length * moveSpeed) * 0.9D;
+            move(net.minecraft.entity.MoverType.SELF, motionX, motionY, motionZ);
+            faceForward(targetX, targetY, targetZ);
         }
-
-        float moveSpeed = getAIMoveSpeed();
-
-        if (entityToAttack != null)
-        {
-            double distX = (entityToAttack.posX - posX);
-            double distY = (entityToAttack.posY - posY);
-            double distZ = (entityToAttack.posZ - posZ);
-
-            double all = MathHelper.sqrt_double(distX * distX + distY * distY + distZ * distZ);
-
-            motionX += distX / all * moveSpeed;
-            motionY += distY / all * moveSpeed;
-            motionZ += distZ / all * moveSpeed;
-        }
-        else
-        {
-            double distX = (getCurrentDestX() - posX);
-            double distY = (getCurrentDestY() - posY);
-            double distZ = (getCurrentDestZ() - posZ);
-
-            double all = MathHelper.sqrt_double(distX * distX + distY * distY + distZ * distZ);
-
-            motionX += distX / all * moveSpeed;
-            motionY += distY / all * moveSpeed;
-            motionZ += distZ / all * moveSpeed;
-
-            if (all < 5.0 || all > 300.0)
-            {
-                findNewDestination();
-            }
-        }
-
-        double max = 1.0F;
-        if (motionX > max)
-            motionX = max;
-        if (motionX < -max)
-            motionX = -max;
-        if (motionY > max)
-            motionY = max;
-        if (motionY < -max)
-            motionY = -max;
-        if (motionZ > max)
-            motionZ = max;
-        if (motionZ < -max)
-            motionZ = -max;
-
-        motionX *= 0.9;
-        motionY *= 0.9;
-        motionZ *= 0.9;
 
         super.onLivingUpdate();
-
-        faceForward();
     }
 
     public void findNewDestination()
     {
-        setCurrentDestX((float) posX + (rand.nextFloat() - 0.5F) * 50.0F);
-        setCurrentDestY(((((float) posY + (rand.nextFloat() - 0.5F) * 50.0F) - 70F) * 0.9F) + 70F);
-        setCurrentDestZ((float) posZ + (rand.nextFloat() - 0.5F) * 50.0F);
+        destX = posX + (rand.nextFloat() - 0.5F) * 50.0F;
+        destY = (((posY + (rand.nextFloat() - 0.5F) * 50.0F) - 70F) * 0.9F) + 70F;
+        destZ = posZ + (rand.nextFloat() - 0.5F) * 50.0F;
     }
 
-    public void faceForward()
+    private void faceForward(double targetX, double targetY, double targetZ)
     {
-        double d0 = getCurrentDestX() - posX;
-        double d2 = getCurrentDestY() - posY;
-        double d1 = getCurrentDestZ() - posZ;
-
-        double d3 = (double) MathHelper.sqrt_double(d0 * d0 + d2 * d2);
-        float f2 = (float) (Math.atan2(d2, d0) * 180.0D / Math.PI) - 90.0F;
-        float f3 = (float) (-(Math.atan2(d1, d3) * 180.0D / Math.PI));
-        this.rotationPitch = this.updateRotation(this.rotationPitch, f3, 10.0f);
-        this.rotationYaw = this.updateRotation(this.rotationYaw, f2, 20.0f);
+        double distX = targetX - posX;
+        double distY = targetY - posY;
+        double distZ = targetZ - posZ;
+        double horizontal = Math.sqrt(distX * distX + distZ * distZ);
+        rotationPitch = updateRotation(rotationPitch, (float) (-(Math.atan2(distY, horizontal) * 180.0D / Math.PI)), 10.0f);
+        rotationYaw = updateRotation(rotationYaw, (float) (Math.atan2(distZ, distX) * 180.0D / Math.PI) - 90.0F, 20.0f);
     }
 
-    private float updateRotation(float par1, float par2, float par3)
+    private float updateRotation(float current, float target, float maxChange)
     {
-        float f3 = MathHelper.wrapAngleTo180_float(par2 - par1);
-
-        if (f3 > par3)
-        {
-            f3 = par3;
-        }
-
-        if (f3 < -par3)
-        {
-            f3 = -par3;
-        }
-
-        return par1 + f3;
-    }
-
-    @Override
-    protected String getHurtSound()
-    {
-        return "mob.creeper";
-    }
-
-    @Override
-    protected String getDeathSound()
-    {
-        return "mob.creeperdeath";
+        float delta = MathHelper.wrapDegrees(target - current);
+        if (delta > maxChange)
+            delta = maxChange;
+        if (delta < -maxChange)
+            delta = -maxChange;
+        return current + delta;
     }
 
     @Override
     protected Item getDropItem()
     {
-        return Item.getItemFromBlock(Blocks.wool);
-    }
-
-    @Override
-    protected void fall(float f)
-    {
-    }
-
-    @Override
-    public void knockBack(Entity entity, float i, double d, double d1)
-    {
-        motionX /= 2D;
-        motionY /= 2D;
-        motionZ /= 2D;
-
-        double distX = (entity.posX - posX);
-        double distY = ((entity.posY - 1) - posY);
-        double distZ = (entity.posZ - posZ);
-
-        double all = distX * distX + distY * distY + distZ * distZ;
-
-        motionX -= distX / all;
-        motionY -= distY / all;
-        motionZ -= distZ / all;
-    }
-
-    @Override
-    public void moveEntityWithHeading(float f, float f1)
-    {
-        moveEntity(motionX, motionY, motionZ);
+        return null;
     }
 
     @Override
@@ -211,41 +102,41 @@ public class EntityGhost extends EntityMob
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource damagesource, float i)
+    public boolean attackEntityFrom(DamageSource source, float amount)
     {
-        if (damagesource == DamageSource.inWall)
+        if (source == DamageSource.IN_WALL)
             return false;
 
-        return super.attackEntityFrom(damagesource, i);
+        return super.attackEntityFrom(source, amount);
     }
 
     public float getCurrentDestX()
     {
-        return this.getDataWatcher().getWatchableObjectFloat(15);
+        return (float) destX;
     }
 
     public float getCurrentDestY()
     {
-        return this.getDataWatcher().getWatchableObjectFloat(16);
+        return (float) destY;
     }
 
     public float getCurrentDestZ()
     {
-        return this.getDataWatcher().getWatchableObjectFloat(17);
+        return (float) destZ;
     }
 
     public void setCurrentDestX(float destX)
     {
-        this.getDataWatcher().updateObject(15, destX);
+        this.destX = destX;
     }
 
     public void setCurrentDestY(float destY)
     {
-        this.getDataWatcher().updateObject(16, destY);
+        this.destY = destY;
     }
 
     public void setCurrentDestZ(float destZ)
     {
-        this.getDataWatcher().updateObject(17, destZ);
+        this.destZ = destZ;
     }
 }

@@ -5,15 +5,14 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityRotatable;
-import ivorius.ivtoolkit.entities.IvEntityHelper;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
-import ivorius.ivtoolkit.raytracing.IvRaytraceableObject;
-import ivorius.ivtoolkit.raytracing.IvRaytracedIntersection;
-import ivorius.ivtoolkit.raytracing.IvRaytracerMC;
+import ivorius.yegamolchattels.multiblock.IvTileEntityRotatable;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.raytracing.IvRaytraceableObject;
+import ivorius.yegamolchattels.raytracing.IvRaytracedIntersection;
+import ivorius.yegamolchattels.raytracing.IvRaytracerMC;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.achievements.YGCAchievementList;
 import ivorius.yegamolchattels.items.YGCItems;
@@ -26,7 +25,7 @@ import net.minecraft.inventory.IInventory;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraftforge.common.util.Constants;
 
 import java.util.ArrayList;
@@ -79,7 +78,7 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
                     setInventorySlotContents(slot, stack.copy());
                     storedWeaponsSwinging[slot] = 0.0f;
 
-                    stack.stackSize--;
+                    stack.shrink(1);
                 }
 
                 return true;
@@ -100,12 +99,12 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
                 if (!worldObj.isRemote)
                 {
                     effectsApplied[slot] = true;
-                    stack.stackSize--;
+                    stack.shrink(1);
 
                     if (entity instanceof EntityPlayer)
-                        ((EntityPlayer) entity).triggerAchievement(YGCAchievementList.weaponRackVariant);
+                        YGCAchievementList.trigger((EntityPlayer) entity, YGCAchievementList.weaponRackVariant);
 
-                    IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "weaponRackData", YeGamolChattels.network);
+                    NetworkHelperServer.sendTileEntityUpdatePacket(this, "weaponRackData", YeGamolChattels.network);
                     markDirty();
                 }
 
@@ -124,23 +123,23 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
         {
             ItemBlock itemBlock = (ItemBlock) item;
 
-            if (itemBlock.field_150939_a == Blocks.brown_mushroom || itemBlock.field_150939_a == Blocks.red_mushroom)
+            if (itemBlock.getBlock() == Blocks.BROWN_MUSHROOM || itemBlock.getBlock() == Blocks.RED_MUSHROOM)
                 return 0;
 
-            if (itemBlock.field_150939_a == Blocks.web)
+            if (itemBlock.getBlock() == Blocks.WEB)
                 return 3;
         }
 
-        if (item == Items.dye && stack.getItemDamage() == 15)
+        if (item == Items.DYE && stack.getItemDamage() == 15)
             return 1;
 
-        if (item == Items.leather)
+        if (item == Items.LEATHER)
             return 2;
 
-        if (item == Items.flint)
+        if (item == Items.FLINT)
             return 4;
 
-        if (item == Items.brick)
+        if (item == Items.BRICK)
             return 5;
 
         return -1;
@@ -192,12 +191,12 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
                 double yShift = worldObj.rand.nextFloat() * 0.2D + 1.1D;
                 double zShift = worldObj.rand.nextFloat() * shiftDist + (1.0F - shiftDist) * 0.5D;
                 EntityItem var14 = new EntityItem(worldObj, xCoord + xShift, yCoord + yShift, zCoord + zShift, storedWeapons[slot]);
-                var14.delayBeforeCanPickup = 10;
-                worldObj.spawnEntityInWorld(var14);
+                var14.setPickupDelay(10);
+                worldObj.spawnEntity(var14);
 
                 storedWeapons[slot] = null;
 
-                IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "weaponRackData", YeGamolChattels.network);
+                NetworkHelperServer.sendTileEntityUpdatePacket(this, "weaponRackData", YeGamolChattels.network);
                 markDirty();
             }
 
@@ -244,11 +243,12 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
         writeWeaponRackDataToNBT(par1nbtTagCompound);
+        return par1nbtTagCompound;
     }
 
     public void readWeaponRackDataFromNBT(NBTTagCompound compound)
@@ -263,7 +263,7 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
 
             if (var5 >= 0 && var5 < this.storedWeapons.length)
             {
-                this.storedWeapons[var5] = ItemStack.loadItemStackFromNBT(var4);
+                this.storedWeapons[var5] = new ItemStack(var4);
                 this.storedWeaponsSwinging[var5] = var4.getFloat("Swinging");
             }
         }
@@ -313,7 +313,7 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
     @Override
     public AxisAlignedBB getRenderBoundingBox()
     {
-        return AxisAlignedBB.getBoundingBox(xCoord - 0.5, yCoord - 0.5, zCoord - 0.5, xCoord + 1.5, yCoord + 2.0, zCoord + 1.5);
+        return new AxisAlignedBB(xCoord - 0.5, yCoord - 0.5, zCoord - 0.5, xCoord + 1.5, yCoord + 2.0, zCoord + 1.5);
     }
 
     @Override
@@ -355,25 +355,25 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
         {
             ItemStack itemstack;
 
-            if (this.storedWeapons[slot].stackSize <= amount)
+            if (this.storedWeapons[slot].getCount() <= amount)
             {
                 itemstack = this.storedWeapons[slot];
                 this.storedWeapons[slot] = null;
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
             else
             {
                 itemstack = this.storedWeapons[slot].splitStack(amount);
 
-                if (this.storedWeapons[slot].stackSize == 0)
+                if (this.storedWeapons[slot].getCount() == 0)
                 {
                     this.storedWeapons[slot] = null;
                 }
 
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
         }
@@ -384,7 +384,7 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
     }
 
     @Override
-    public ItemStack getStackInSlotOnClosing(int slot)
+    public ItemStack removeStackFromSlot(int slot)
     {
         if (this.storedWeapons[slot] != null)
         {
@@ -401,21 +401,21 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
     {
         this.storedWeapons[slot] = stack;
 
-        if (stack != null && stack.stackSize > this.getInventoryStackLimit())
-            stack.stackSize = this.getInventoryStackLimit();
+        if (stack != null && stack.getCount() > this.getInventoryStackLimit())
+            stack.setCount(this.getInventoryStackLimit());
 
         this.markDirty();
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        notifyBlockUpdate();
     }
 
     @Override
-    public String getInventoryName()
+    public String getName()
     {
         return "container.weaponRack";
     }
 
     @Override
-    public boolean hasCustomInventoryName()
+    public boolean hasCustomName()
     {
         return false;
     }
@@ -427,19 +427,19 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player)
+    public boolean isUsableByPlayer(EntityPlayer player)
     {
-        return this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
+        return this.worldObj.getTileEntity(this.pos) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
     }
 
     @Override
-    public void openInventory()
+    public void openInventory(EntityPlayer player)
     {
 
     }
 
     @Override
-    public void closeInventory()
+    public void closeInventory(EntityPlayer player)
     {
 
     }
@@ -449,5 +449,41 @@ public class TileEntityWeaponRack extends IvTileEntityRotatable implements IInve
     {
         Item item = stack.getItem();
         return item instanceof ItemTool || item instanceof ItemSword || (getWeaponRackType() == weaponRackTypeFloor && item instanceof ItemBow) || item == YGCItems.mallet;
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+        for (ItemStack stack : storedWeapons)
+        {
+            if (stack != null && !stack.isEmpty())
+                return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public int getField(int id)
+    {
+        return 0;
+    }
+
+    @Override
+    public void setField(int id, int value)
+    {
+    }
+
+    @Override
+    public int getFieldCount()
+    {
+        return 0;
+    }
+
+    @Override
+    public void clear()
+    {
+        for (int i = 0; i < storedWeapons.length; i++)
+            storedWeapons[i] = null;
     }
 }

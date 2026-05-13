@@ -7,25 +7,23 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import ivorius.ivtoolkit.blocks.IvBlockMultiblock;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.yegamolchattels.YeGamolChattels;
+import ivorius.yegamolchattels.multiblock.IvBlockMultiblock;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import ivorius.yegamolchattels.materials.YGCMaterials;
 import ivorius.yegamolchattels.tabs.YGCCreativeTabs;
-import net.minecraft.block.Block;
-import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.inventory.Container;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IIcon;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class BlockPedestal extends IvBlockMultiblock
 {
-    public IIcon[] icons;
-
     public BlockPedestal()
     {
         super(YGCMaterials.mixed);
@@ -34,54 +32,39 @@ public class BlockPedestal extends IvBlockMultiblock
     }
 
     @Override
-    public int getRenderType()
+    public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return -1;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public boolean isOpaqueCube()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean renderAsNormalBlock()
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public IIcon getIcon(int par1, int par2)
+    public boolean isFullCube(IBlockState state)
     {
-        return this.icons.length > par2 ? this.icons[par2] : Blocks.planks.getIcon(0, 0);
+        return false;
     }
 
     @Override
-    public void registerBlockIcons(IIconRegister iconRegister)
-    {
-        this.icons = new IIcon[EnumPedestalEntry.getNumberOfEntries()];
-
-        for (int i = 0; i < this.icons.length; i++)
-            this.icons[i] = iconRegister.registerIcon(YeGamolChattels.textureBase + "pedestal" + i);
-    }
-
-    @Override
-    public TileEntity createNewTileEntity(World var1, int i)
+    public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TileEntityPedestal();
     }
 
     @Override
-    public boolean onBlockActivated(World par1World, int par2, int par3, int par4, EntityPlayer player, int par6, float par7, float par8, float par9)
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        TileEntity tileEntity = par1World.getTileEntity(par2, par3, par4);
+        TileEntity tileEntity = world.getTileEntity(pos);
 
         if (tileEntity instanceof TileEntityPedestal)
         {
-            if (((TileEntityPedestal) tileEntity).tryStoringItem(player.getHeldItem()))
+            if (((TileEntityPedestal) tileEntity).tryStoringItem(player.getHeldItem(hand)))
             {
-                player.inventory.setInventorySlotContents(player.inventory.currentItem, null);
+                player.inventory.setInventorySlotContents(player.inventory.currentItem, ItemStack.EMPTY);
             }
             else
             {
@@ -93,31 +76,31 @@ public class BlockPedestal extends IvBlockMultiblock
     }
 
     @Override
-    public void parentBlockDropItemContents(World par1World, IvTileEntityMultiBlock tileEntity, int parentX, int parentY, int parentZ, Block block, int blockMeta)
+    public void parentBlockDropItemContents(World world, IvTileEntityMultiBlock tileEntity, BlockPos pos, IBlockState state)
     {
         ((TileEntityPedestal) tileEntity).dropItem();
     }
 
     @Override
-    public void parentBlockHarvestItem(World par1World, IvTileEntityMultiBlock tileEntity, int parentX, int parentY, int parentZ, Block block, int blockMeta)
+    public void parentBlockHarvestItem(World world, IvTileEntityMultiBlock tileEntity, BlockPos pos, IBlockState state)
     {
-        this.dropBlockAsItem(par1World, parentX, parentY, parentZ, new ItemStack(this, 1, ((TileEntityPedestal) tileEntity).pedestalIdentifier));
+        spawnAsEntity(world, pos, new ItemStack(this, 1, ((TileEntityPedestal) tileEntity).pedestalIdentifier));
     }
 
     @Override
-    public boolean hasComparatorInputOverride()
+    public boolean hasComparatorInputOverride(IBlockState state)
     {
         return true;
     }
 
     @Override
-    public int getComparatorInputOverride(World world, int x, int y, int z, int p_149736_5_)
+    public int getComparatorInputOverride(IBlockState state, World world, BlockPos pos)
     {
-        TileEntity tileEntity = world.getTileEntity(x, y, z);
+        TileEntity tileEntity = world.getTileEntity(pos);
 
         if (tileEntity instanceof TileEntityPedestal)
             return Container.calcRedstoneFromInventory((TileEntityPedestal) tileEntity);
 
-        return super.getComparatorInputOverride(world, x, y, z, p_149736_5_);
+        return super.getComparatorInputOverride(state, world, pos);
     }
 }

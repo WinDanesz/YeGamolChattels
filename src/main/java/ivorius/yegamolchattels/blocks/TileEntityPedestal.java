@@ -5,19 +5,20 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.ivtoolkit.entities.IvEntityHelper;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.utils.PlayerItemHelper;
 import ivorius.yegamolchattels.YeGamolChattels;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.AxisAlignedBB;
 
 public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInventory, PartialUpdateHandler
 {
@@ -66,7 +67,7 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
                     float yPlus = worldObj.rand.nextFloat() * worldObj.rand.nextFloat() * 0.2f;
                     float zPlus = worldObj.rand.nextFloat() * 1.6f - 0.3f;
 
-                    worldObj.spawnParticle("cloud", xCoord + xPlus, yCoord + yPlus, zCoord + zPlus, 0.0f, worldObj.rand.nextFloat() * 0.01f + 0.01f, 0.0f);
+                    worldObj.spawnParticle(EnumParticleTypes.CLOUD, xCoord + xPlus, yCoord + yPlus, zCoord + zPlus, 0.0f, worldObj.rand.nextFloat() * 0.01f + 0.01f, 0.0f);
                 }
             }
 
@@ -90,7 +91,7 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
                 storedItems[0] = stack.copy();
                 itemShouldBeUp = true;
 
-                IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "pedestalData", YeGamolChattels.network);
+                NetworkHelperServer.sendTileEntityUpdatePacket(this, "pedestalData", YeGamolChattels.network);
                 markDirty();
             }
 
@@ -117,11 +118,11 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
 
                 if (player != null && getIntegrationTime() == 0)
                 {
-                    IvEntityHelper.addAsCurrentItem(player, storedItems[0]);
+                    PlayerItemHelper.addAsCurrentItem(player, storedItems[0]);
                     storedItems[0] = null;
                 }
 
-                IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "pedestalData", YeGamolChattels.network);
+                NetworkHelperServer.sendTileEntityUpdatePacket(this, "pedestalData", YeGamolChattels.network);
                 markDirty();
             }
 
@@ -144,11 +145,11 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
                 if (!worldObj.isRemote)
                 {
                     EntityItem itemEntity = new EntityItem(worldObj, xCoord, yCoord, zCoord, storedItems[0]);
-                    worldObj.spawnEntityInWorld(itemEntity);
+                    worldObj.spawnEntity(itemEntity);
 
                     storedItems[0] = null;
 
-                    IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "pedestalData", YeGamolChattels.network);
+                    NetworkHelperServer.sendTileEntityUpdatePacket(this, "pedestalData", YeGamolChattels.network);
                     markDirty();
                 }
             }
@@ -178,11 +179,12 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
         writePedestalDataToNBT(par1nbtTagCompound);
+        return par1nbtTagCompound;
     }
 
     @Override
@@ -218,7 +220,7 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
         if (tagCompound.hasKey("storedItem"))
         {
             NBTTagCompound var4 = tagCompound.getCompoundTag("storedItem");
-            storedItems[0] = ItemStack.loadItemStackFromNBT(var4);
+            storedItems[0] = new ItemStack(var4);
         }
         else
         {
@@ -233,7 +235,7 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
         if (extent != null)
         {
             double[] center = getActiveCenterCoords();
-            return AxisAlignedBB.getBoundingBox(center[0] - extent[0], center[1] - extent[1], center[2] - extent[2], center[0] + extent[0], center[1] + extent[1], center[2] + extent[2]);
+            return new AxisAlignedBB(center[0] - extent[0], center[1] - extent[1], center[2] - extent[2], center[0] + extent[0], center[1] + extent[1], center[2] + extent[2]);
         }
 
         return super.getRenderBoundingBox();
@@ -278,25 +280,25 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
         {
             ItemStack itemstack;
 
-            if (this.storedItems[slot].stackSize <= amount)
+            if (this.storedItems[slot].getCount() <= amount)
             {
                 itemstack = this.storedItems[slot];
                 this.storedItems[slot] = null;
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
             else
             {
                 itemstack = this.storedItems[slot].splitStack(amount);
 
-                if (this.storedItems[slot].stackSize == 0)
+                if (this.storedItems[slot].getCount() == 0)
                 {
                     this.storedItems[slot] = null;
                 }
 
                 this.markDirty();
-                worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                notifyBlockUpdate();
                 return itemstack;
             }
         }
@@ -307,7 +309,7 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
     }
 
     @Override
-    public ItemStack getStackInSlotOnClosing(int slot)
+    public ItemStack removeStackFromSlot(int slot)
     {
         if (this.storedItems[slot] != null)
         {
@@ -324,21 +326,21 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
     {
         this.storedItems[slot] = stack;
 
-        if (stack != null && stack.stackSize > this.getInventoryStackLimit())
-            stack.stackSize = this.getInventoryStackLimit();
+        if (stack != null && stack.getCount() > this.getInventoryStackLimit())
+            stack.setCount(this.getInventoryStackLimit());
 
         this.markDirty();
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        notifyBlockUpdate();
     }
 
     @Override
-    public String getInventoryName()
+    public String getName()
     {
         return "container.ygcPedestal";
     }
 
     @Override
-    public boolean hasCustomInventoryName()
+    public boolean hasCustomName()
     {
         return false;
     }
@@ -350,19 +352,19 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
     }
 
     @Override
-    public boolean isUseableByPlayer(EntityPlayer player)
+    public boolean isUsableByPlayer(EntityPlayer player)
     {
-        return this.worldObj.getTileEntity(this.xCoord, this.yCoord, this.zCoord) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
+        return this.worldObj.getTileEntity(this.pos) == this && player.getDistanceSq((double) this.xCoord + 0.5D, (double) this.yCoord + 0.5D, (double) this.zCoord + 0.5D) <= 64.0D;
     }
 
     @Override
-    public void openInventory()
+    public void openInventory(EntityPlayer player)
     {
 
     }
 
     @Override
-    public void closeInventory()
+    public void closeInventory(EntityPlayer player)
     {
 
     }
@@ -371,5 +373,34 @@ public class TileEntityPedestal extends IvTileEntityMultiBlock implements IInven
     public boolean isItemValidForSlot(int slot, ItemStack stack)
     {
         return true;
+    }
+
+    @Override
+    public boolean isEmpty()
+    {
+        return storedItems[0] == null || storedItems[0].isEmpty();
+    }
+
+    @Override
+    public int getField(int id)
+    {
+        return 0;
+    }
+
+    @Override
+    public void setField(int id, int value)
+    {
+    }
+
+    @Override
+    public int getFieldCount()
+    {
+        return 0;
+    }
+
+    @Override
+    public void clear()
+    {
+        storedItems[0] = null;
     }
 }

@@ -1,12 +1,16 @@
 package ivorius.yegamolchattels.blocks;
 
-import ivorius.ivtoolkit.blocks.IvBlockMultiblock;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import net.minecraft.block.Block;
+import ivorius.yegamolchattels.multiblock.IvBlockMultiblock;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 /**
@@ -16,45 +20,45 @@ public class BlockTablePress extends IvBlockMultiblock
 {
     public BlockTablePress()
     {
-        super(Material.wood);
+        super(Material.WOOD);
     }
 
     @Override
-    public int getRenderType()
+    public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return -1;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public boolean isOpaqueCube()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean renderAsNormalBlock()
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public void parentBlockHarvestItem(World world, IvTileEntityMultiBlock tileEntity, int x, int y, int z, Block block, int metadata)
+    public boolean isFullCube(IBlockState state)
     {
-        dropBlockAsItem(world, x, y, z, new ItemStack(this));
+        return false;
     }
 
     @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ)
+    public void parentBlockHarvestItem(World world, IvTileEntityMultiBlock tileEntity, BlockPos pos, IBlockState state)
     {
-        IvTileEntityMultiBlock tileEntity = getValidatedTotalParent(this, world, x, y, z);
+        spawnAsEntity(world, pos, new ItemStack(this));
+    }
+
+    @Override
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    {
+        IvTileEntityMultiBlock tileEntity = getValidatedTotalParent(this, world, pos);
 
         if (tileEntity instanceof TileEntityTablePress)
         {
             TileEntityTablePress planksRefinement = (TileEntityTablePress) tileEntity;
 
-            if (planksRefinement.tryStoringItem(player.getHeldItem(), player))
+            if (planksRefinement.tryStoringItem(player.getHeldItem(hand), player))
                 return true;
-            else if (planksRefinement.tryUsingItem(player.getHeldItem(), player))
+            else if (planksRefinement.tryUsingItem(player.getHeldItem(hand), player))
                 return true;
             else if (planksRefinement.tryEquippingItemOnPlayer(player))
                 return true;
@@ -66,7 +70,7 @@ public class BlockTablePress extends IvBlockMultiblock
     }
 
     @Override
-    public TileEntity createNewTileEntity(World var1, int var2)
+    public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TileEntityTablePress();
     }

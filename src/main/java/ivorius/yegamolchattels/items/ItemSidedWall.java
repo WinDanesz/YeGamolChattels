@@ -7,58 +7,34 @@ package ivorius.yegamolchattels.items;
 
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class ItemSidedWall extends ItemBlock
 {
+    private final Block placedBlock;
+
     public ItemSidedWall(Block block)
     {
         super(block);
+        this.placedBlock = block;
         maxStackSize = 16;
     }
 
     @Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        Block var11 = par3World.getBlock(par4, par5, par6);
+        BlockPos placePos = pos.offset(facing);
+        if (!placedBlock.canPlaceBlockAt(world, placePos))
+            return EnumActionResult.FAIL;
 
-        if (var11 == Blocks.snow && (par3World.getBlockMetadata(par4, par5, par6) & 7) < 1)
-        {
-            par7 = 1;
-        }
-        else if (var11 != Blocks.vine && var11 != Blocks.tallgrass && var11 != Blocks.deadbush)
-        {
-            if (par7 == 0)
-                --par5;
-
-            if (par7 == 1)
-                ++par5;
-
-            if (par7 == 2)
-                --par6;
-
-            if (par7 == 3)
-                ++par6;
-
-            if (par7 == 4)
-                --par4;
-
-            if (par7 == 5)
-                ++par4;
-        }
-
-        Block block = field_150939_a;
-
-        if (!block.canPlaceBlockAt(par3World, par4, par5, par6))
-        {
-            return false;
-        }
-
-        int i1 = MathHelper.floor_double((par2EntityPlayer.rotationYaw * 4F) / 360F + 0.5D) & 3;
+        int i1 = MathHelper.floor_double((player.rotationYaw * 4F) / 360F + 0.5D) & 3;
 
         if (i1 == 0)
             i1 = 0;
@@ -69,18 +45,18 @@ public class ItemSidedWall extends ItemBlock
         else if (i1 == 3)
             i1 = 2;
 
-        int type = par1ItemStack.getItemDamage();
+        int type = player.getHeldItem(hand).getItemDamage();
 
-        par3World.setBlock(par4, par5, par6, block, type | (i1 << 2), 3);
+        world.setBlockState(placePos, placedBlock.getStateFromMeta(type | (i1 << 2)), 3);
 
-        par1ItemStack.stackSize--;
+        player.getHeldItem(hand).shrink(1);
 
-        return true;
+        return EnumActionResult.SUCCESS;
     }
 
     @Override
-    public String getUnlocalizedName(ItemStack par1ItemStack)
+    public String getTranslationKey(ItemStack par1ItemStack)
     {
-        return super.getUnlocalizedName(par1ItemStack) + ".meta" + par1ItemStack.getItemDamage();
+        return super.getTranslationKey(par1ItemStack) + ".meta" + par1ItemStack.getItemDamage();
     }
 }

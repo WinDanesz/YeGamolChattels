@@ -6,19 +6,22 @@
 package ivorius.yegamolchattels.blocks;
 
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.math.IvMathHelper;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
-import ivorius.ivtoolkit.raytracing.IvRaytraceableObject;
-import ivorius.ivtoolkit.raytracing.IvRaytracedIntersection;
+import ivorius.yegamolchattels.math.IvMathHelper;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.raytracing.IvRaytraceableObject;
+import ivorius.yegamolchattels.raytracing.IvRaytracedIntersection;
 import ivorius.yegamolchattels.YGCConfig;
+import ivorius.yegamolchattels.utils.YGCSoundHelper;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.init.Items;
 import net.minecraft.item.ItemArmor;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
 import org.lwjgl.util.vector.Vector3f;
@@ -80,7 +83,7 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
                 double yP = center[1] - 0.25 + worldObj.rand.nextDouble();
                 double zP = center[2] - 0.45 + sideDir.getZ() * worldObj.rand.nextDouble() * 0.9;
 
-                worldObj.spawnParticle("portal", xP, yP, zP, -frontDir.getX(), frontDir.getY(), -frontDir.getZ());
+                worldObj.spawnParticle(EnumParticleTypes.PORTAL, xP, yP, zP, -frontDir.getX(), frontDir.getY(), -frontDir.getZ());
             }
         }
     }
@@ -205,7 +208,7 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
                     setInventorySlotContents(slot, stack);
 
                     double[] center = getActiveCenterCoords();
-                    worldObj.playSoundEffect(center[0], center[1], center[2], "dig.wood", 0.5f, 1.0f + worldObj.rand.nextFloat());
+                    YGCSoundHelper.play(worldObj, center[0], center[1], center[2], "dig.wood", 0.5f, 1.0f + worldObj.rand.nextFloat());
                 }
 
                 return true;
@@ -268,7 +271,7 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
 
     public static boolean tryAutocompletingBook(ItemStack stack, String[] book, boolean sign)
     {
-        if (stack != null && stack.getItem() == Items.writable_book)
+        if (stack != null && stack.getItem() == Items.WRITABLE_BOOK)
         {
             if (stack.getTagCompound() == null || !stack.getTagCompound().hasKey("pages"))
                 stack.setTagInfo("pages", new NBTTagList());
@@ -309,7 +312,6 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
                     {
                         stack.setTagInfo("author", new NBTTagString(book[1]));
                         stack.setTagInfo("title", new NBTTagString(book[0]));
-                        stack.func_150996_a(Items.written_book); // Set item
                     }
 
                     return true;
@@ -324,12 +326,12 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
     public void activateTrigger(int trigger)
     {
         this.shelfTriggers[trigger] = !this.shelfTriggers[trigger];
-        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+        notifyBlockUpdate();
 
         if (this.shelfTriggers[trigger])
-            worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, "random.chestopen", 0.3f, 1.6f);
+            YGCSoundHelper.play(worldObj, xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, "random.chestopen", 0.3f, 1.6f);
         else
-            worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, "random.chestclosed", 0.3f, 1.6f);
+            YGCSoundHelper.play(worldObj, xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, "random.chestclosed", 0.3f, 1.6f);
     }
 
     @Override
@@ -350,7 +352,7 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
 //                        player.triggerAchievement(YGCAchievementList.wardrobeSecret);
 //
 //                        narniaActivating = !narniaActivating;
-//                        IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "narniaProgress", YeGamolChattels.network);
+//                        NetworkHelperServer.sendTileEntityUpdatePacket(this, "narniaProgress", YeGamolChattels.network);
 //                    }
 //
 //                    return true;
@@ -376,7 +378,7 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
 
         if (this.getShelfType() == SHELF_WARDROBE && (slot == 8 || slot == 9 || slot == 10 || slot == 11))
         {
-            if (!(stack.getItem() instanceof ItemArmor && ((ItemArmor) stack.getItem()).armorType == 1))
+            if (!(stack.getItem() instanceof ItemArmor && ((ItemArmor) stack.getItem()).armorType == EntityEquipmentSlot.CHEST))
                 return false;
         }
 
@@ -393,12 +395,13 @@ public class TileEntityItemShelfModel0 extends TileEntityItemShelf implements Pa
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
         par1nbtTagCompound.setBoolean("narniaActivating", narniaActivating);
         par1nbtTagCompound.setFloat("narniaProgress", narniaProgress);
+        return par1nbtTagCompound;
     }
 
     @Override

@@ -5,10 +5,10 @@
 
 package ivorius.yegamolchattels;
 
-import cpw.mods.fml.common.Loader;
 import ivorius.yegamolchattels.blocks.YGCBlocks;
 import ivorius.yegamolchattels.items.YGCItems;
 import ivorius.yegamolchattels.mods.MineFactoryReloaded;
+import net.minecraftforge.fml.common.Loader;
 
 /**
  * Created by lukas on 24.09.14.

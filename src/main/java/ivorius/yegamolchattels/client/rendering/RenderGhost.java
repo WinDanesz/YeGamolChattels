@@ -1,28 +1,22 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.client.rendering;
 
 import ivorius.yegamolchattels.YeGamolChattels;
+import ivorius.yegamolchattels.entities.EntityGhost;
 import net.minecraft.client.renderer.entity.RenderLiving;
-import net.minecraft.entity.Entity;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.util.ResourceLocation;
 
-public class RenderGhost extends RenderLiving
+public class RenderGhost extends RenderLiving<EntityGhost>
 {
-    public ResourceLocation texture;
+    private final ResourceLocation texture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "ghostTexture.png");
 
-    public RenderGhost()
+    public RenderGhost(RenderManager renderManager)
     {
-        super(new ModelGhost(), 0.5F);
-
-        texture = new ResourceLocation(YeGamolChattels.MODID, YeGamolChattels.filePathTextures + "ghostTexture.png");
+        super(renderManager, new ModelGhost(), 0.5F);
     }
 
     @Override
-    protected ResourceLocation getEntityTexture(Entity entity)
+    protected ResourceLocation getEntityTexture(EntityGhost entity)
     {
         return texture;
     }

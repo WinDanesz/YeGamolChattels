@@ -1,206 +1,202 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.blocks;
 
-
-import ivorius.yegamolchattels.YeGamolChattels;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockStairs;
+import net.minecraft.block.BlockFence;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.block.properties.PropertyEnum;
+import net.minecraft.block.state.BlockStateContainer;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.Items;
 import net.minecraft.item.Item;
-import net.minecraft.util.AxisAlignedBB;
-import net.minecraft.util.IIcon;
-import net.minecraft.util.MovingObjectPosition;
-import net.minecraft.util.Vec3;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.IStringSerializable;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+import javax.annotation.Nullable;
 import java.util.Random;
 
 public class BlockTikiTorch extends Block
 {
-    public IIcon upperTexture;
+    public static final PropertyEnum<Part> PART = PropertyEnum.create("part", Part.class);
 
     public BlockTikiTorch()
     {
-        super(Material.circuits);
+        super(Material.CIRCUITS);
         setTickRandomly(true);
+        setHardness(0.0F);
+        setSoundType(SoundType.WOOD);
+        setLightLevel(0.9375F);
+        setDefaultState(blockState.getBaseState().withProperty(PART, Part.UPPER));
     }
 
+    @Nullable
     @Override
-    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int i, int j, int k)
+    public AxisAlignedBB getCollisionBoundingBox(IBlockState state, IBlockAccess world, BlockPos pos)
     {
-        return null;
+        return NULL_AABB;
     }
 
     @Override
-    public boolean isOpaqueCube()
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public boolean renderAsNormalBlock()
+    public boolean isFullCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public int getRenderType()
+    public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return YGCBlocks.blockTikiTorchRenderType;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public Item getItemDropped(int metadata, Random random, int luck)
+    public Item getItemDropped(IBlockState state, Random random, int fortune)
     {
-        return metadata == 0 ? super.getItemDropped(metadata, random, luck) : null;
+        return state.getValue(PART) == Part.UPPER ? Item.getItemFromBlock(this) : Items.AIR;
     }
 
-    private boolean canPlaceTorchOn(World par1World, int par2, int par3, int par4)
+    private boolean canPlaceTorchOn(World world, BlockPos pos)
     {
-        if (par1World.isBlockNormalCubeDefault(par2, par3, par4, true))
+        IBlockState state = world.getBlockState(pos);
+        Block block = state.getBlock();
+        return state.isSideSolid(world, pos, EnumFacing.UP)
+                || block instanceof BlockFence
+                || block == Blocks.NETHER_BRICK_FENCE
+                || block == Blocks.GLASS
+                || (block == this && state.getValue(PART) == Part.LOWER);
+    }
+
+    @Override
+    public boolean canPlaceBlockAt(World world, BlockPos pos)
+    {
+        return pos.getY() < world.getHeight() - 1
+                && canPlaceTorchOn(world, pos.down())
+                && super.canPlaceBlockAt(world, pos)
+                && world.mayPlace(this, pos.up(), false, EnumFacing.UP, null);
+    }
+
+    @Override
+    public void updateTick(World world, BlockPos pos, IBlockState state, Random random)
+    {
+        if (state.getValue(PART) == Part.UPPER)
         {
-            return true;
+            validateStructure(world, pos, state, true);
         }
+    }
 
-        Block i = par1World.getBlock(par2, par3, par4);
+    @Override
+    public void onBlockAdded(World world, BlockPos pos, IBlockState state)
+    {
+        validateStructure(world, pos, state, true);
+    }
 
-        if (i == Blocks.fence || i == Blocks.nether_brick_fence || i == Blocks.glass || (par1World.getBlock(par2, par3, par4) == YGCBlocks.tikiTorch && par1World.getBlockMetadata(par2, par3, par4) != 0))
+    @Override
+    public void neighborChanged(IBlockState state, World world, BlockPos pos, Block block, BlockPos fromPos)
+    {
+        validateStructure(world, pos, state, true);
+    }
+
+    private boolean validateStructure(World world, BlockPos pos, IBlockState state, boolean dropItem)
+    {
+        Part part = state.getValue(PART);
+        BlockPos lowerPos = part == Part.LOWER ? pos : pos.down();
+        BlockPos upperPos = lowerPos.up();
+        IBlockState lowerState = world.getBlockState(lowerPos);
+        IBlockState upperState = world.getBlockState(upperPos);
+
+        boolean valid = lowerState.getBlock() == this
+                && lowerState.getValue(PART) == Part.LOWER
+                && upperState.getBlock() == this
+                && upperState.getValue(PART) == Part.UPPER
+                && canPlaceTorchOn(world, lowerPos.down());
+
+        if (!valid)
         {
-            return true;
-        }
-
-        if (i != null && (i instanceof BlockStairs))
-        {
-            int j = par1World.getBlockMetadata(par2, par3, par4);
-
-            if ((4 & j) != 0)
+            if (dropItem && upperState.getBlock() == this && upperState.getValue(PART) == Part.UPPER && !world.isRemote)
             {
-                return true;
+                spawnAsEntity(world, upperPos, new net.minecraft.item.ItemStack(this));
+            }
+
+            if (lowerState.getBlock() == this)
+            {
+                world.setBlockToAir(lowerPos);
+            }
+
+            if (upperState.getBlock() == this)
+            {
+                world.setBlockToAir(upperPos);
             }
         }
 
-        return false;
+        return valid;
     }
 
     @Override
-    public boolean canPlaceBlockAt(World world, int i, int j, int k)
+    public void randomDisplayTick(IBlockState state, World world, BlockPos pos, Random random)
     {
-        if (j >= world.getHeight() - 2) // -1 because index, -1 because it needs 2 height
+        if (state.getValue(PART) == Part.UPPER)
         {
-            return false;
-        }
-        else
-        {
-            return canPlaceTorchOn(world, i, j - 1, k) && super.canPlaceBlockAt(world, i, j, k) && super.canPlaceBlockAt(world, i, j + 1, k);
-        }
-    }
-
-    @Override
-    public void updateTick(World world, int i, int j, int k, Random random)
-    {
-        super.updateTick(world, i, j, k, random);
-        if (world.getBlockMetadata(i, j, k) == 0)
-        {
-            onBlockAdded(world, i, j, k);
+            double x = pos.getX() + 0.5D;
+            double y = pos.getY() + 0.7D;
+            double z = pos.getZ() + 0.5D;
+            world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, x, y, z, 0.0D, 0.0D, 0.0D);
+            world.spawnParticle(EnumParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);
         }
     }
 
     @Override
-    public void onBlockAdded(World world, int i, int j, int k)
+    public int getMetaFromState(IBlockState state)
     {
-        dropTorchIfCantStay(world, i, j, k);
+        return state.getValue(PART).meta;
     }
 
     @Override
-    public void onNeighborBlockChange(World world, int x, int y, int z, Block block)
+    public IBlockState getStateFromMeta(int meta)
     {
-        super.onNeighborBlockChange(world, x, y, z, block);
+        return getDefaultState().withProperty(PART, Part.fromMeta(meta));
+    }
 
-        int i1 = world.getBlockMetadata(x, y, z);
+    @Override
+    protected BlockStateContainer createBlockState()
+    {
+        return new BlockStateContainer(this, PART);
+    }
 
-        if (!(dropTorchIfCantStay(world, x, y, z) && i1 == 0))
+    public enum Part implements IStringSerializable
+    {
+        UPPER(0, "upper"),
+        LOWER(1, "lower");
+
+        private final int meta;
+        private final String name;
+
+        Part(int meta, String name)
         {
-            if (world.getBlock(x, y + 1, z) != this)
-            {
-                world.setBlock(x, y, z, Blocks.air, 0, 3);
-            }
+            this.meta = meta;
+            this.name = name;
         }
-    }
 
-    private boolean dropTorchIfCantStay(World world, int i, int j, int k)
-    {
-        if (!canPlaceTorchOn(world, i, j - 1, k))
+        public static Part fromMeta(int meta)
         {
-            dropBlockAsItem(world, i, j, k, world.getBlockMetadata(i, j, k), 0);
-            world.setBlock(i, j, k, Blocks.air, 0, 3);
-            return false;
+            return meta == LOWER.meta ? LOWER : UPPER;
         }
-        else
+
+        @Override
+        public String getName()
         {
-            return true;
+            return name;
         }
-    }
-
-    @Override
-    public MovingObjectPosition collisionRayTrace(World par1World, int par2, int par3, int par4, Vec3 par5Vec3, Vec3 par6Vec3)
-    {
-        float f1 = 0.1F;
-        int l = par1World.getBlockMetadata(par2, par3, par4);
-        setBlockBounds(0.5F - f1, 0.0F, 0.5F - f1, 0.5F + f1, (l == 0 ? 0.6F : 1.0F), 0.5F + f1);
-
-        return super.collisionRayTrace(par1World, par2, par3, par4, par5Vec3, par6Vec3);
-    }
-
-    @Override
-    public void randomDisplayTick(World world, int i, int j, int k, Random random)
-    {
-        int l = world.getBlockMetadata(i, j, k);
-        double d = i + 0.5F;
-        double d1 = j + 0.7F;
-        double d2 = k + 0.5F;
-
-        if (l == 0)
-        {
-            world.spawnParticle("smoke", d, d1, d2, 0.0D, 0.0D, 0.0D);
-            world.spawnParticle("flame", d, d1, d2, 0.0D, 0.0D, 0.0D);
-        }
-    }
-
-    @Override
-    public void registerBlockIcons(IIconRegister par1IconRegister)
-    {
-        blockIcon = par1IconRegister.registerIcon(YeGamolChattels.textureBase + this.getTextureName());
-        upperTexture = par1IconRegister.registerIcon(YeGamolChattels.textureBase + this.getTextureName() + "Upper");
-    }
-
-    @Override
-    public IIcon getIcon(int par1, int par2)
-    {
-        if (par2 == 0)
-        {
-            return upperTexture;
-        }
-        else
-        {
-            return super.getIcon(par1, par2);
-        }
-    }
-
-    @Override
-    public String getItemIconName()
-    {
-        return YeGamolChattels.textureBase + getTextureName();
-    }
-
-    @Override
-    public int getMobilityFlag()
-    {
-        return 1;
     }
 }

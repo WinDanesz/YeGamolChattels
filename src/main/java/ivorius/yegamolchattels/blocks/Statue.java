@@ -6,12 +6,14 @@
 package ivorius.yegamolchattels.blocks;
 
 import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
 /**
@@ -54,7 +56,7 @@ public class Statue
             material = getMaterial(compound);
         }
         else
-            material = new BlockFragment(Blocks.stone, 0);
+            material = new BlockFragment(Blocks.STONE, 0);
     }
 
     public static void setRotations(EntityLivingBase entityLivingBase, float yawHead, float pitchHead, float swing, float stance)
@@ -81,7 +83,8 @@ public class Statue
 
     public static BlockFragment getMaterial(NBTTagCompound compound)
     {
-        return new BlockFragment(Block.getBlockFromName(compound.getString("block")), compound.getInteger("blockMetadata"));
+        Block block = Block.getBlockFromName(compound.getString("block"));
+        return new BlockFragment(block != null ? block : Blocks.STONE, compound.getInteger("blockMetadata"));
     }
 
     public Entity getEntity()
@@ -170,7 +173,8 @@ public class Statue
 
         if (material != null)
         {
-            compound.setString("block", Block.blockRegistry.getNameForObject(material.getBlock()));
+            ResourceLocation resourceLocation = Block.REGISTRY.getNameForObject(material.getBlock());
+            compound.setString("block", resourceLocation != null ? resourceLocation.toString() : "");
             compound.setInteger("blockMetadata", material.getMetadata());
         }
 
@@ -196,6 +200,11 @@ public class Statue
         public int getMetadata()
         {
             return metadata;
+        }
+
+        public IBlockState getState()
+        {
+            return block.getStateFromMeta(metadata);
         }
 
         @Override

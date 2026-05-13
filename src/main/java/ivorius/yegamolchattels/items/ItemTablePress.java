@@ -5,40 +5,49 @@
 
 package ivorius.yegamolchattels.items;
 
-import ivorius.ivtoolkit.blocks.IvMultiBlockHelper;
+import ivorius.yegamolchattels.multiblock.IvMultiBlockHelper;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.List;
 
 public class ItemTablePress extends ItemBlock
 {
+    private final Block placedBlock;
+
     public ItemTablePress(Block block)
     {
         super(block);
+        this.placedBlock = block;
         maxStackSize = 16;
     }
 
     @Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        int rotation = IvMultiBlockHelper.getRotation(par2EntityPlayer);
+        ItemStack stack = player.getHeldItem(hand);
+        int rotation = IvMultiBlockHelper.getRotation(player);
         List<int[]> positions = IvMultiBlockHelper.getRotatedPositions(rotation, 2, 1, 1);
 
         IvMultiBlockHelper multiBlockHelper = new IvMultiBlockHelper();
-        if (multiBlockHelper.beginPlacing(positions, par3World, par4, par5, par6, par7, par1ItemStack, par2EntityPlayer, this.field_150939_a, 0, rotation))
+        if (multiBlockHelper.beginPlacing(positions, world, pos.getX(), pos.getY(), pos.getZ(), facing.getIndex(), stack, player, placedBlock, 0, rotation))
         {
             for (int[] position : multiBlockHelper)
             {
                 multiBlockHelper.placeBlock(position);
             }
 
-            par1ItemStack.stackSize--;
+            stack.shrink(1);
+            return EnumActionResult.SUCCESS;
         }
 
-        return true;
+        return EnumActionResult.FAIL;
     }
 }

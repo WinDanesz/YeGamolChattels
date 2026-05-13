@@ -5,8 +5,8 @@
 
 package ivorius.yegamolchattels.items;
 
-import ivorius.ivtoolkit.blocks.IvMultiBlockHelper;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
+import ivorius.yegamolchattels.multiblock.IvMultiBlockHelper;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import ivorius.yegamolchattels.blocks.EnumPedestalEntry;
 import ivorius.yegamolchattels.blocks.TileEntityPedestal;
 import net.minecraft.block.Block;
@@ -15,31 +15,39 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
-import net.minecraft.util.IIcon;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.List;
 
 public class ItemPedestal extends ItemBlock
 {
+    private final Block placedBlock;
+
     public ItemPedestal(Block block)
     {
         super(block);
+        this.placedBlock = block;
         maxStackSize = 16;
         setHasSubtypes(true);
     }
 
     @Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int par4, int par5, int par6, int par7, float par8, float par9, float par10)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        int identifier = par1ItemStack.getItemDamage();
+        ItemStack stack = player.getHeldItem(hand);
+        int identifier = stack.getItemDamage();
         EnumPedestalEntry entry = EnumPedestalEntry.getEntry(identifier);
 
-        int rotation = IvMultiBlockHelper.getRotation(par2EntityPlayer);
+        int rotation = IvMultiBlockHelper.getRotation(player);
         List<int[]> positions = IvMultiBlockHelper.getRotatedPositions(rotation, entry.size[0], entry.size[1], entry.size[2]);
 
         IvMultiBlockHelper multiBlockHelper = new IvMultiBlockHelper();
-        if (multiBlockHelper.beginPlacing(positions, par3World, par4, par5, par6, par7, par1ItemStack, par2EntityPlayer, this.field_150939_a, identifier, rotation))
+        if (multiBlockHelper.beginPlacing(positions, world, pos.getX(), pos.getY(), pos.getZ(), facing.getIndex(), stack, player, placedBlock, identifier, rotation))
         {
             for (int[] position : multiBlockHelper)
             {
@@ -47,25 +55,29 @@ public class ItemPedestal extends ItemBlock
 
                 if (tileEntity instanceof TileEntityPedestal)
                 {
-                    ((TileEntityPedestal) tileEntity).pedestalIdentifier = par1ItemStack.getItemDamage();
+                    ((TileEntityPedestal) tileEntity).pedestalIdentifier = stack.getItemDamage();
                 }
             }
 
-            par1ItemStack.stackSize--;
+            stack.shrink(1);
+            return EnumActionResult.SUCCESS;
         }
 
-        return true;
+        return EnumActionResult.FAIL;
     }
 
     @Override
-    public void getSubItems(Item par1, CreativeTabs par2CreativeTabs, List par3List)
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items)
     {
+        if (!isInCreativeTab(tab))
+            return;
+
         for (int i = 0; i < EnumPedestalEntry.getNumberOfEntries(); i++)
-            par3List.add(new ItemStack(this, 1, i));
+            items.add(new ItemStack(this, 1, i));
     }
 
     @Override
-    public String getUnlocalizedName(ItemStack par1ItemStack)
+    public String getTranslationKey(ItemStack par1ItemStack)
     {
         int damage = par1ItemStack.getItemDamage();
 
@@ -83,12 +95,7 @@ public class ItemPedestal extends ItemBlock
         else if (damage == 5)
             material = ".nether";
 
-        return super.getUnlocalizedName(par1ItemStack) + material;
+        return super.getTranslationKey(par1ItemStack) + material;
     }
 
-    @Override
-    public IIcon getIconFromDamage(int par1)
-    {
-        return field_150939_a.getIcon(0, par1);
-    }
 }

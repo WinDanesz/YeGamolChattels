@@ -6,12 +6,12 @@
 package ivorius.yegamolchattels.blocks;
 
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
-import ivorius.ivtoolkit.raytracing.IvRaytraceableObject;
-import ivorius.ivtoolkit.raytracing.IvRaytracedIntersection;
-import ivorius.ivtoolkit.raytracing.IvRaytracerMC;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.raytracing.IvRaytraceableObject;
+import ivorius.yegamolchattels.raytracing.IvRaytracedIntersection;
+import ivorius.yegamolchattels.raytracing.IvRaytracerMC;
 import ivorius.yegamolchattels.YGCConfig;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.achievements.YGCAchievementList;
@@ -22,10 +22,14 @@ import net.minecraft.init.Items;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ChatComponentText;
-import net.minecraft.util.EnumChatFormatting;
-import net.minecraft.util.IChatComponent;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.util.SoundEvent;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
+import net.minecraft.util.text.TextFormatting;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,27 +55,31 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
 
             if (!worldObj.isRemote)
             {
-                IChatComponent sendComponent = null;
+                ITextComponent sendComponent = null;
 
                 if (madnessTimer == 260)
-                    sendComponent = new ChatComponentText("Attempting rescue using GONG-" + EnumChatFormatting.OBFUSCATED + "Engine-12930" + EnumChatFormatting.RESET + "! ");
+                    sendComponent = new TextComponentString("Attempting rescue using GONG-" + TextFormatting.OBFUSCATED + "Engine-12930" + TextFormatting.RESET + "! ");
                 if (madnessTimer == 230)
-                    sendComponent = new ChatComponentText("GONG " + EnumChatFormatting.OBFUSCATED + "RESCUE STEP 1" + EnumChatFormatting.RESET + "! ");
+                    sendComponent = new TextComponentString("GONG " + TextFormatting.OBFUSCATED + "RESCUE STEP 1" + TextFormatting.RESET + "! ");
                 if (madnessTimer == 200)
-                    sendComponent = new ChatComponentText("GONG " + EnumChatFormatting.OBFUSCATED + "THE CAKE IS A LIE" + EnumChatFormatting.RESET + "! ");
+                    sendComponent = new TextComponentString("GONG " + TextFormatting.OBFUSCATED + "THE CAKE IS A LIE" + TextFormatting.RESET + "! ");
                 if (madnessTimer == 180)
-                    sendComponent = new ChatComponentText("Re" + EnumChatFormatting.OBFUSCATED + "sc" + EnumChatFormatting.RESET + "ue failed! Ivorius i" + EnumChatFormatting.OBFUSCATED + "s incred" + EnumChatFormatting.RESET + "ibly sorry!");
+                    sendComponent = new TextComponentString("Re" + TextFormatting.OBFUSCATED + "sc" + TextFormatting.RESET + "ue failed! Ivorius i" + TextFormatting.OBFUSCATED + "s incred" + TextFormatting.RESET + "ibly sorry!");
                 if (madnessTimer == 144)
-                    sendComponent = new ChatComponentText("Initia" + EnumChatFormatting.OBFUSCATED + "ting se" + EnumChatFormatting.RESET + "lf-destruct! Executing in 7.4" + EnumChatFormatting.OBFUSCATED + "32 se" + EnumChatFormatting.RESET + "conds... " + EnumChatFormatting.OBFUSCATED + "GongGongGong" + EnumChatFormatting.RESET + "");
+                    sendComponent = new TextComponentString("Initia" + TextFormatting.OBFUSCATED + "ting se" + TextFormatting.RESET + "lf-destruct! Executing in 7.4" + TextFormatting.OBFUSCATED + "32 se" + TextFormatting.RESET + "conds... " + TextFormatting.OBFUSCATED + "GongGongGong" + TextFormatting.RESET);
                 if (madnessTimer == 60)
-                    sendComponent = new ChatComponentText("3...! " + EnumChatFormatting.OBFUSCATED + "GongGongGong" + EnumChatFormatting.RESET + "");
+                    sendComponent = new TextComponentString("3...! " + TextFormatting.OBFUSCATED + "GongGongGong" + TextFormatting.RESET);
                 if (madnessTimer == 40)
-                    sendComponent = new ChatComponentText("2." + EnumChatFormatting.OBFUSCATED + ".." + EnumChatFormatting.RESET + "! ");
+                    sendComponent = new TextComponentString("2." + TextFormatting.OBFUSCATED + ".." + TextFormatting.RESET + "! ");
                 if (madnessTimer == 20)
-                    sendComponent = new ChatComponentText("" + EnumChatFormatting.OBFUSCATED + "1.." + EnumChatFormatting.RESET + ". Expl" + EnumChatFormatting.OBFUSCATED + "osion imm" + EnumChatFormatting.RESET + "inent! ");
+                    sendComponent = new TextComponentString("" + TextFormatting.OBFUSCATED + "1.." + TextFormatting.RESET + ". Expl" + TextFormatting.OBFUSCATED + "osion imm" + TextFormatting.RESET + "inent! ");
 
                 if (sendComponent != null)
-                    MinecraftServer.getServer().getConfigurationManager().sendChatMsg(sendComponent);
+                {
+                    MinecraftServer server = worldObj.getMinecraftServer();
+                    if (server != null)
+                        server.getPlayerList().sendMessage(sendComponent);
+                }
 
                 if (worldObj.rand.nextInt(madnessTimer / 10 + 5) == 0)
                 {
@@ -93,7 +101,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
                     double startY = center[1] + worldObj.rand.nextFloat() * gongSize - gongSize * 0.5f - 0.5f; //Don't ask me
                     double startZ = center[2] + worldObj.rand.nextFloat() * gongSize - gongSize * 0.5f;
 
-                    getWorldObj().spawnParticle("portal", startX + offsetX, startY + offsetY, startZ + offsetZ, -offsetX, -offsetY, -offsetZ);
+                    worldObj.spawnParticle(EnumParticleTypes.PORTAL, startX + offsetX, startY + offsetY, startZ + offsetZ, -offsetX, -offsetY, -offsetZ);
                 }
             }
         }
@@ -120,19 +128,19 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
                     switch (getBlockMetadata())
                     {
                         case 0:
-                            ((EntityPlayer) entity).triggerAchievement(YGCAchievementList.smallGongPlayed);
+                            YGCAchievementList.trigger((EntityPlayer) entity, YGCAchievementList.smallGongPlayed);
                             break;
                         case 1:
-                            ((EntityPlayer) entity).triggerAchievement(YGCAchievementList.mediumGongPlayed);
+                            YGCAchievementList.trigger((EntityPlayer) entity, YGCAchievementList.mediumGongPlayed);
                             break;
                         case 2:
-                            ((EntityPlayer) entity).triggerAchievement(YGCAchievementList.largeGongPlayed);
+                            YGCAchievementList.trigger((EntityPlayer) entity, YGCAchievementList.largeGongPlayed);
                             break;
                     }
                 }
-                else if (stack != null && stack.getItem() == Items.ender_pearl)
+                else if (stack != null && stack.getItem() == Items.ENDER_PEARL)
                 {
-                    ((EntityPlayer) entity).triggerAchievement(YGCAchievementList.gongSecret);
+                    YGCAchievementList.trigger((EntityPlayer) entity, YGCAchievementList.gongSecret);
                 }
             }
 
@@ -175,22 +183,28 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
                     sound = YeGamolChattels.soundBase + "gongLarge";
             }
 
-            worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, sound, 2.0f + gongSize * 4.0f, pitch);
+            SoundEvent soundEvent = SoundEvent.REGISTRY.getObject(new ResourceLocation(sound));
+            if (soundEvent != null)
+                worldObj.playSound(null, xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, soundEvent, SoundCategory.BLOCKS, 2.0f + gongSize * 4.0f, pitch);
 
             if (!failedHit)
                 vibrationStrength = 100;
             else
                 vibrationStrength = 50;
 
-            if (stack != null && stack.getItem() == Items.ender_pearl && YGCConfig.easterEggsAllowed)
+            if (stack != null && stack.getItem() == Items.ENDER_PEARL && YGCConfig.easterEggsAllowed)
             {
                 madnessTimer = 320;
 
                 if (!worldObj.isRemote)
-                    MinecraftServer.getServer().getConfigurationManager().sendChatMsg(new ChatComponentText("Oh no! Something has gong wrong! " + EnumChatFormatting.OBFUSCATED + "GongGongGong" + EnumChatFormatting.RESET + ""));
+                {
+                    MinecraftServer server = worldObj.getMinecraftServer();
+                    if (server != null)
+                        server.getPlayerList().sendMessage(new TextComponentString("Oh no! Something has gong wrong! " + TextFormatting.OBFUSCATED + "GongGongGong" + TextFormatting.RESET));
+                }
             }
 
-            IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "vibrationData", YeGamolChattels.network);
+            NetworkHelperServer.sendTileEntityUpdatePacket(this, "vibrationData", YeGamolChattels.network);
             markDirty();
         }
 
@@ -202,7 +216,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
         ArrayList<IvRaytraceableObject> raytraceables = new ArrayList<>();
 
         double gSize = getBlockMetadata() + 1;
-        int steps = MathHelper.ceiling_double_int(20 * gSize);
+        int steps = MathHelper.ceil(20 * gSize);
 
         for (int i = 0; i < steps; i++)
         {
@@ -233,7 +247,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
@@ -241,6 +255,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
         par1nbtTagCompound.setInteger("gongType", gongType);
 
         par1nbtTagCompound.setInteger("madnessTimer", madnessTimer);
+        return par1nbtTagCompound;
     }
 
     @Override

@@ -9,10 +9,11 @@ import ivorius.ivtoolkit.blocks.BlockCoord;
 import ivorius.ivtoolkit.blocks.IvBlockCollection;
 import ivorius.ivtoolkit.tools.MCRegistryDefault;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
-import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.client.util.ITooltipFlag;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
+import net.minecraft.world.World;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -44,18 +45,18 @@ public class ItemMicroBlock extends ItemBlock
     }
 
     @Override
-    public void addInformation(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, List par3List, boolean par4)
+    public void addInformation(ItemStack stack, @Nullable World world, List<String> tooltip, ITooltipFlag flag)
     {
-        super.addInformation(par1ItemStack, par2EntityPlayer, par3List, par4);
+        super.addInformation(stack, world, tooltip, flag);
 
-        IvBlockCollection collection = containedMicroBlock(par1ItemStack);
+        IvBlockCollection collection = containedMicroBlock(stack);
         if (collection != null)
         {
             Set<ItemChisel.BlockData> blockSet = new HashSet<>();
             for (BlockCoord coord : collection)
             {
                 Block block = collection.getBlock(coord);
-                if (block.getMaterial() != Material.air)
+                if (block != Blocks.AIR)
                     blockSet.add(new ItemChisel.BlockData(block, collection.getMetadata(coord)));
             }
 
@@ -75,20 +76,20 @@ public class ItemMicroBlock extends ItemBlock
                     if (curCount == 3)
                     {
                         curCount = 0;
-                        par3List.add(blockNames.toString());
+                        tooltip.add(blockNames.toString());
                         blockNames = new StringBuilder();
                         lineCount++;
 
                         if (lineCount > 3)
                         {
-                            par3List.add("[...]");
+                            tooltip.add("[...]");
                             break;
                         }
                     }
                 }
 
                 if (curCount > 0)
-                    par3List.add(blockNames.toString());
+                    tooltip.add(blockNames.toString());
             }
         }
     }

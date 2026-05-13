@@ -1,12 +1,11 @@
 package ivorius.yegamolchattels.client.rendering;
 
-import ivorius.ivtoolkit.items.IvItemRendererModel;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.ItemStack;
 
-public class ModelTablePress extends ModelBase implements IvItemRendererModel.ItemModelRenderer
+public class ModelTablePress extends ModelBase implements ItemModelRenderer
 {
     ModelRenderer Top1;
     ModelRenderer Leg1;

@@ -18,7 +18,7 @@ public class YGCMaterials
 
     public static void init()
     {
-        mixed = new Material(MapColor.stoneColor);
+        mixed = new Material(MapColor.STONE);
         YGCBlockAccessor.setImmovableMobility(mixed);
     }
 }

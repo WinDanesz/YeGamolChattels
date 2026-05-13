@@ -1,34 +1,32 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.entities;
 
 import ivorius.yegamolchattels.items.YGCItems;
 import net.minecraft.block.Block;
-import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.DamageSource;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
 
 import java.util.List;
 
 public class EntityFlag extends Entity
 {
+    private int flagSize;
+    private int flagColor;
+
     public float wind = 0.0f;
     public float simWind = 0.0f;
 
     public EntityFlag(World world)
     {
         super(world);
-        yOffset = 0.0F;
         setSize(0.5F, 0.5F);
         ignoreFrustumCheck = true;
     }
@@ -36,15 +34,19 @@ public class EntityFlag extends Entity
     @Override
     protected void entityInit()
     {
-        this.dataWatcher.addObject(25, 0);
-        this.dataWatcher.addObject(26, 0);
     }
 
     public void updateBounds()
     {
-        float f1 = getFlagHeight();
+        float height = getFlagHeight() / 16F;
+        setEntityBoundingBox(new AxisAlignedBB(posX + 0.4, posY, posZ + 0.4, posX + 0.6, posY + height, posZ + 0.6));
+    }
 
-        boundingBox.setBounds(posX + 0.4, posY, posZ + 0.4, posX + 0.6, posY + f1 / 16F, posZ + 0.6);
+    @Override
+    public void setPosition(double x, double y, double z)
+    {
+        super.setPosition(x, y, z);
+        updateBounds();
     }
 
     @Override
@@ -52,42 +54,15 @@ public class EntityFlag extends Entity
     {
         super.onUpdate();
 
-        if ((ticksExisted + 90) % 100 == 0)
+        if (!world.isRemote && (ticksExisted + 90) % 100 == 0 && !canStayAtPosition())
         {
-            if (!worldObj.isRemote)
-            {
-                if (!canStayAtPosition())
-                {
-                    setDead();
-                    dropFlag();
-                }
-
-//				int cache = getColor(); //For entities nonliving, Data watcher does not get transferred at start.
-//                setColor(-1); 			//Thus, It needs transfer check every few secs
-//				setColor(cache);
-//
-//				cache = getSize();
-//				setSize(-1);
-//				setSize(cache);
-//
-//                for (Object player : worldObj.playerEntities)
-//                {
-//                    if (worldObj.playerEntities.size() > 0)
-//                    {
-//                        EntityPlayerMP p = (EntityPlayerMP) player;
-//
-////						ModLoader.serverSendPacket(p.playerNetServerHandler, new Packet40EntityMetadata(entityId, dataWatcher, true));
-//                    }
-//                }
-            }
-            else
-            {
-                updateBounds();
-            }
+            setDead();
+            dropFlag();
         }
 
-        wind = updateWind(wind, worldObj);
+        wind = updateWind(wind, world);
         simWind = updateSimWind(wind, simWind);
+        updateBounds();
     }
 
     public static float updateSimWind(float wind, float simWind)
@@ -100,17 +75,11 @@ public class EntityFlag extends Entity
         return simWind + (wind - simWind) * 0.02f * t;
     }
 
-    public static float updateWind(float wind, World worldObj)
+    public static float updateWind(float wind, World world)
     {
-        float globalWind = getGlobalWind(worldObj.getWorldTime());
-
-        wind += (worldObj.rand.nextFloat() * globalWind - worldObj.rand.nextFloat() * (1.0f - globalWind)) * 0.2f;
-        if (wind < 0.0f)
-            wind = 0.0f;
-        if (wind > 1.0f)
-            wind = 1.0f;
-
-        return wind;
+        float globalWind = getGlobalWind(world.getWorldTime());
+        wind += (world.rand.nextFloat() * globalWind - world.rand.nextFloat() * (1.0f - globalWind)) * 0.2f;
+        return MathHelper.clamp(wind, 0.0f, 1.0f);
     }
 
     public static float getGlobalWind(long time)
@@ -120,40 +89,21 @@ public class EntityFlag extends Entity
 
     public boolean canStayAtPosition()
     {
-        Block block = worldObj.getBlock((int) posX, (int) posY - 1, (int) posZ);
-
-        AxisAlignedBB bb = boundingBox.copy();
-        if (!(block != Blocks.fence && block != Blocks.nether_brick_fence && block != Blocks.cobblestone_wall))
-            bb.minY += 0.5f;
-
-        if (worldObj.getCollidingBoundingBoxes(this, bb).size() > 0)
-        {
+        BlockPos basePos = new BlockPos(posX, posY - 0.01, posZ);
+        IBlockState state = world.getBlockState(basePos);
+        Block block = state.getBlock();
+        boolean supported = state.getMaterial().isSolid() || block == Blocks.OAK_FENCE || block == Blocks.NETHER_BRICK_FENCE || block == Blocks.COBBLESTONE_WALL;
+        if (!supported)
             return false;
-        }
 
-        Material material = worldObj.getBlock((int) posX, (int) posY - 1, (int) posZ).getMaterial();
-
-        if (!material.isSolid() && block != Blocks.fence && block != Blocks.nether_brick_fence && block != Blocks.cobblestone_wall)
+        List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(this, getEntityBoundingBox());
+        for (Entity entity : entities)
         {
-            return false;
-        }
-
-        List list = worldObj.getEntitiesWithinAABBExcludingEntity(this, boundingBox);
-        for (Object anObject : list)
-        {
-            if (anObject instanceof EntityFlag)
-            {
+            if (entity instanceof EntityFlag)
                 return false;
-            }
         }
 
         return true;
-    }
-
-    @Override
-    public void func_145781_i(int p_145781_1_) // EntityWatcher got updated
-    {
-        this.worldObj.func_147450_X();
     }
 
     @Override
@@ -163,12 +113,11 @@ public class EntityFlag extends Entity
     }
 
     @Override
-    public boolean attackEntityFrom(DamageSource par1DamageSource, float par2)
+    public boolean attackEntityFrom(DamageSource source, float amount)
     {
-        if (!isDead && !worldObj.isRemote)
+        if (!isDead && !world.isRemote)
         {
             setDead();
-            setBeenAttacked();
             dropFlag();
         }
 
@@ -176,41 +125,42 @@ public class EntityFlag extends Entity
     }
 
     @Override
-    public void writeEntityToNBT(NBTTagCompound nbttagcompound)
+    protected void readEntityFromNBT(NBTTagCompound tag)
     {
-        nbttagcompound.setInteger("TileX", (int) posX);
-        nbttagcompound.setInteger("TileY", (int) posY);
-        nbttagcompound.setInteger("TileZ", (int) posZ);
-        nbttagcompound.setInteger("FlagSize", getSize());
-        nbttagcompound.setInteger("FlagColor", getColor());
-    }
-
-    @Override
-    public void readEntityFromNBT(NBTTagCompound nbttagcompound)
-    {
-        posX = nbttagcompound.getInteger("TileX");
-        posY = nbttagcompound.getInteger("TileY");
-        posZ = nbttagcompound.getInteger("TileZ");
-        setSize(nbttagcompound.getInteger("FlagSize"));
-        setColor(nbttagcompound.getInteger("FlagColor"));
-
+        setPosition(tag.getInteger("TileX"), tag.getInteger("TileY"), tag.getInteger("TileZ"));
+        flagSize = tag.getInteger("FlagSize");
+        flagColor = tag.getInteger("FlagColor");
         updateBounds();
     }
 
     @Override
-    public void moveEntity(double d, double d1, double d2)
+    protected void writeEntityToNBT(NBTTagCompound tag)
     {
-        if (!worldObj.isRemote && d * d + d1 * d1 + d2 * d2 > 0.0D)
+        tag.setInteger("TileX", MathHelper.floor(posX));
+        tag.setInteger("TileY", MathHelper.floor(posY));
+        tag.setInteger("TileZ", MathHelper.floor(posZ));
+        tag.setInteger("FlagSize", flagSize);
+        tag.setInteger("FlagColor", flagColor);
+    }
+
+    @Override
+    public void move(net.minecraft.entity.MoverType type, double x, double y, double z)
+    {
+        if (!world.isRemote && x * x + y * y + z * z > 0.0D)
         {
             setDead();
             dropFlag();
         }
+        else
+        {
+            super.move(type, x, y, z);
+        }
     }
 
     @Override
-    public void addVelocity(double d, double d1, double d2)
+    public void addVelocity(double x, double y, double z)
     {
-        if (!worldObj.isRemote && d * d + d1 * d1 + d2 * d2 > 0.0D)
+        if (!world.isRemote && x * x + y * y + z * z > 0.0D)
         {
             setDead();
             dropFlag();
@@ -219,44 +169,38 @@ public class EntityFlag extends Entity
 
     public int getFlagHeight()
     {
-        if (getSize() == 0)
-            return 16 * 2;
-        if (getSize() == 2)
-            return 16 * 8;
+        if (flagSize == 0)
+            return 32;
+        if (flagSize == 2)
+            return 128;
 
-        return 16 * 6;
+        return 96;
     }
 
     public void dropFlag()
     {
-        if (getSize() == 0)
-            worldObj.spawnEntityInWorld(new EntityItem(worldObj, posX, posY, posZ, new ItemStack(YGCItems.flagSmall, 1, getColor())));
-        else if (getSize() == 2)
-            worldObj.spawnEntityInWorld(new EntityItem(worldObj, posX, posY, posZ, new ItemStack(YGCItems.flagLarge, 1, getColor())));
-
-        else
-            worldObj.spawnEntityInWorld(new EntityItem(worldObj, posX, posY, posZ, new ItemStack(YGCItems.flagSmall, 1, getColor())));
+        ItemStack drop = new ItemStack(flagSize == 2 ? YGCItems.flagLarge : YGCItems.flagSmall, 1, flagColor);
+        world.spawnEntity(new EntityItem(world, posX, posY, posZ, drop));
     }
 
     public int getSize()
     {
-        return dataWatcher.getWatchableObjectInt(25);
+        return flagSize;
     }
 
     public void setSize(int size)
     {
-        dataWatcher.updateObject(25, size);
-
+        flagSize = size;
         updateBounds();
     }
 
     public int getColor()
     {
-        return dataWatcher.getWatchableObjectInt(26);
+        return flagColor;
     }
 
     public void setColor(int color)
     {
-        dataWatcher.updateObject(26, color);
+        flagColor = color;
     }
 }

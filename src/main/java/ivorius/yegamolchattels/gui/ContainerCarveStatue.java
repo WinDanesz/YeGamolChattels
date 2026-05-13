@@ -7,8 +7,8 @@ package ivorius.yegamolchattels.gui;
 
 import com.mojang.authlib.GameProfile;
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.network.PacketGuiAction;
-import ivorius.ivtoolkit.tools.IvInventoryHelper;
+import ivorius.yegamolchattels.network.PacketGuiAction;
+import ivorius.yegamolchattels.utils.InventoryHelper;
 import ivorius.yegamolchattels.blocks.Statue;
 import ivorius.yegamolchattels.blocks.StatueHelper;
 import ivorius.yegamolchattels.blocks.TileEntityStatue;
@@ -26,9 +26,9 @@ import net.minecraft.inventory.Slot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTUtil;
-import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.world.World;
 import net.minecraftforge.common.util.Constants;
+import net.minecraft.util.text.TextComponentTranslation;
 
 /**
  * Created by lukas on 27.07.14.
@@ -119,7 +119,7 @@ public class ContainerCarveStatue extends Container implements PacketGuiAction.A
         {
             if (stack.getItem() == YGCItems.entityVita)
                 return ItemEntityVita.createEntity(stack, world);
-            else if (stack.getItem() == Items.skull)
+            else if (stack.getItem() == Items.SKULL)
             {
                 NBTTagCompound compound = stack.getTagCompound();
 
@@ -129,7 +129,7 @@ public class ContainerCarveStatue extends Container implements PacketGuiAction.A
 
                     if (compound.hasKey("SkullOwner", Constants.NBT.TAG_COMPOUND))
                     {
-                        gameprofile = NBTUtil.func_152459_a(compound.getCompoundTag("SkullOwner"));
+                        gameprofile = NBTUtil.readGameProfileFromNBT(compound.getCompoundTag("SkullOwner"));
                     }
                     else if (compound.hasKey("SkullOwner", Constants.NBT.TAG_STRING) && compound.getString("SkullOwner").length() > 0)
                     {
@@ -154,11 +154,11 @@ public class ContainerCarveStatue extends Container implements PacketGuiAction.A
         {
             for (int i = 0; i < this.statueEntityCarvingInventory.getSizeInventory(); ++i)
             {
-                ItemStack itemstack = this.statueEntityCarvingInventory.getStackInSlotOnClosing(0);
+                ItemStack itemstack = this.statueEntityCarvingInventory.removeStackFromSlot(0);
 
                 if (itemstack != null)
                 {
-                    player.dropPlayerItemWithRandomChoice(itemstack, false);
+                    player.dropItem(itemstack, false);
                 }
             }
         }
@@ -179,15 +179,15 @@ public class ContainerCarveStatue extends Container implements PacketGuiAction.A
             ItemStack chiselStack = usingPlayer.inventory.getStackInSlot(chiselItem);
             if (statueStack != null && chiselStack != null)
             {
-                if (usingPlayer.inventory.hasItem(YGCItems.clubHammer))
+                if (InventoryHelper.getInventorySlotContainItem(usingPlayer.inventory, YGCItems.clubHammer) >= 0)
                 {
                     Entity statueEntity = getEntity(statueStack, usingPlayer.getEntityWorld());
                     Statue statue = new Statue(statueEntity, null, yawHead, pitchHead, swing, stance);
-                    TileEntityStatue createdStatue = StatueHelper.carveStatue(usingPlayer.inventory.getCurrentItem(), statue, statueEntity.worldObj, statueX, statueY, statueZ, usingPlayer);
+                    TileEntityStatue createdStatue = StatueHelper.carveStatue(usingPlayer.inventory.getCurrentItem(), statue, statueEntity.world, statueX, statueY, statueZ, usingPlayer);
 
                     if (createdStatue != null)
                     {
-                        int clubHammerSlot = IvInventoryHelper.getInventorySlotContainItem(usingPlayer.inventory, YGCItems.clubHammer);
+                        int clubHammerSlot = InventoryHelper.getInventorySlotContainItem(usingPlayer.inventory, YGCItems.clubHammer);
                         usingPlayer.inventory.getStackInSlot(clubHammerSlot).damageItem(1, usingPlayer);
                         chiselStack.damageItem(10, usingPlayer);
                         usingPlayer.inventory.markDirty();
@@ -196,7 +196,7 @@ public class ContainerCarveStatue extends Container implements PacketGuiAction.A
                 }
                 else
                 {
-                    usingPlayer.addChatComponentMessage(new ChatComponentTranslation("item.ygcChisel.noHammer"));
+                    usingPlayer.sendMessage(new TextComponentTranslation("item.ygcChisel.noHammer"));
                 }
 
                 usingPlayer.closeScreen();
@@ -229,35 +229,35 @@ public class ContainerCarveStatue extends Container implements PacketGuiAction.A
                     return null;
                 }
 
-                if (itemstack1.hasTagCompound() && itemstack1.stackSize == 1)
+                if (itemstack1.hasTagCompound() && itemstack1.getCount() == 1)
                 {
                     ((Slot) this.inventorySlots.get(0)).putStack(itemstack1.copy());
-                    itemstack1.stackSize = 0;
+                    itemstack1.setCount(0);
                 }
-                else if (itemstack1.stackSize >= 1)
+                else if (itemstack1.getCount() >= 1)
                 {
                     ItemStack oneItemStack = itemstack1.copy();
-                    oneItemStack.stackSize = 1;
+                    oneItemStack.setCount(1);
                     ((Slot) this.inventorySlots.get(0)).putStack(oneItemStack);
-                    --itemstack1.stackSize;
+                    itemstack1.shrink(1);
                 }
             }
 
-            if (itemstack1.stackSize == 0)
+            if (itemstack1.getCount() == 0)
             {
-                slot.putStack((ItemStack) null);
+                slot.putStack(ItemStack.EMPTY);
             }
             else
             {
                 slot.onSlotChanged();
             }
 
-            if (itemstack1.stackSize == itemstack.stackSize)
+            if (itemstack1.getCount() == itemstack.getCount())
             {
                 return null;
             }
 
-            slot.onPickupFromSlot(par1EntityPlayer, itemstack1);
+            slot.onTake(par1EntityPlayer, itemstack1);
         }
 
         return itemstack;

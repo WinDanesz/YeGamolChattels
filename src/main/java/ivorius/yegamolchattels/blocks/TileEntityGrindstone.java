@@ -6,15 +6,16 @@
 package ivorius.yegamolchattels.blocks;
 
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityHelper;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.multiblock.IvTileEntityHelper;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.items.YGCItems;
 import net.minecraft.block.Block;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.SoundEvents;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.ItemSword;
@@ -23,12 +24,15 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumParticleTypes;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.SoundCategory;
 
 import java.util.Random;
 
-public class TileEntityGrindstone extends TileEntity implements PartialUpdateHandler
+public class TileEntityGrindstone extends TileEntity implements PartialUpdateHandler, ITickable
 {
     public static final int maxGrindstoneHealth = 30;
 
@@ -42,9 +46,10 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
     public float crankRotationVisual;
 
     @Override
-    public void updateEntity()
+    public void update()
     {
-        super.updateEntity();
+        if (world == null || pos == null)
+            return;
 
         if (this.grindstoneRotationSpeed > 0)
             this.grindstoneRotationSpeed--;
@@ -60,9 +65,9 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
             crankRotationVisual += 0.4f;
         }
 
-        if (!getWorldObj().isRemote && grindstoneRotationSpeed > 150 && ticksTillSound == 0)
+        if (!world.isRemote && grindstoneRotationSpeed > 150 && ticksTillSound == 0)
         {
-            worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, "minecart.inside", 0.25f, 0.5f);
+            world.playSound(null, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, SoundEvents.ENTITY_MINECART_RIDING, SoundCategory.BLOCKS, 0.25f, 0.5f);
             ticksTillSound = 100;
         }
 
@@ -73,15 +78,15 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
         {
             timeSharpening--;
 
-            Random rand = getWorldObj().rand;
-            if (!getWorldObj().isRemote && rand.nextFloat() < 0.01f)
+            Random rand = world.rand;
+            if (!world.isRemote && rand.nextFloat() < 0.01f)
             {
-                ItemStack sandStack = new ItemStack(Blocks.sand);
-                EntityItem sandItem = new EntityItem(getWorldObj(), xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, sandStack);
-                getWorldObj().spawnEntityInWorld(sandItem);
+                ItemStack sandStack = new ItemStack(Blocks.SAND);
+                EntityItem sandItem = new EntityItem(world, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, sandStack);
+                world.spawnEntity(sandItem);
             }
 
-            getWorldObj().spawnParticle("blockcrack_" + Block.getIdFromBlock(Blocks.sand) + "_0", xCoord + 0.5f, yCoord + 0.7f, zCoord + 0.5f, rand.nextFloat() * 0.2f - 0.1f, 0.1f, rand.nextFloat() * 0.2f - 0.1f);
+            world.spawnParticle(EnumParticleTypes.BLOCK_CRACK, pos.getX() + 0.5f, pos.getY() + 0.7f, pos.getZ() + 0.5f, rand.nextFloat() * 0.2f - 0.1f, 0.1f, rand.nextFloat() * 0.2f - 0.1f, Block.getStateId(Blocks.SAND.getDefaultState()));
         }
     }
 
@@ -91,12 +96,12 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
         {
             if (grindstoneHealth == 0)
             {
-                if (!worldObj.isRemote)
+                if (!world.isRemote)
                 {
                     this.grindstoneHealth = maxGrindstoneHealth;
-                    stack.stackSize--;
+                    stack.shrink(1);
 
-                    IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "grindstoneData", YeGamolChattels.network);
+                    NetworkHelperServer.sendTileEntityUpdatePacket(this, "grindstoneData", YeGamolChattels.network);
                     markDirty();
                 }
 
@@ -137,9 +142,9 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
                     int currentItemRepairs = getCurrentRepairs(stack);
 
                     float itemSurvivalChance = currentItemRepairs > 10 ? (1.0f / (1.0f + currentItemRepairs * 0.02f)) : 1;
-                    if (!getWorldObj().isRemote && getWorldObj().rand.nextFloat() > itemSurvivalChance)
+                    if (!world.isRemote && world.rand.nextFloat() > itemSurvivalChance)
                     {
-                        stack.stackSize--;
+                        stack.shrink(1);
                         if (entity != null)
                             entity.renderBrokenItemStack(stack);
                     }
@@ -155,13 +160,13 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
 
                     float chanceToSurvive = grindstoneHealth * 0.2f;
 
-                    if (!getWorldObj().isRemote && getWorldObj().rand.nextFloat() > chanceToSurvive)
+                    if (!world.isRemote && world.rand.nextFloat() > chanceToSurvive)
                     {
                         for (int i = 0; i < 4; i++)
                         {
-                            ItemStack sandStack = new ItemStack(Blocks.sand);
-                            EntityItem sandItem = new EntityItem(getWorldObj(), xCoord + 0.5f, yCoord + 0.5f, zCoord + 0.5f, sandStack);
-                            getWorldObj().spawnEntityInWorld(sandItem);
+                            ItemStack sandStack = new ItemStack(Blocks.SAND);
+                            EntityItem sandItem = new EntityItem(world, pos.getX() + 0.5f, pos.getY() + 0.5f, pos.getZ() + 0.5f, sandStack);
+                            world.spawnEntity(sandItem);
                         }
 
                         grindstoneHealth = 0;
@@ -171,7 +176,7 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
                         timeSharpening = 30;
                     }
 
-                    IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "grindstoneData", YeGamolChattels.network);
+                    NetworkHelperServer.sendTileEntityUpdatePacket(this, "grindstoneData", YeGamolChattels.network);
                     markDirty();
 
                     return true;
@@ -184,7 +189,7 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
 
     public void increaseGrindstoneRotation()
     {
-        if (!worldObj.isRemote)
+        if (!world.isRemote)
         {
             if (grindstoneHealth > 0)
             {
@@ -199,7 +204,7 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
             if (crankRotationTime > 30)
                 crankRotationTime = 30;
 
-            IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "grindstoneData", YeGamolChattels.network);
+            NetworkHelperServer.sendTileEntityUpdatePacket(this, "grindstoneData", YeGamolChattels.network);
             markDirty();
         }
     }
@@ -216,7 +221,7 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
@@ -224,18 +229,19 @@ public class TileEntityGrindstone extends TileEntity implements PartialUpdateHan
         par1nbtTagCompound.setInteger("rotationSpeed", grindstoneRotationSpeed);
         par1nbtTagCompound.setInteger("crankRotationTime", crankRotationTime);
         par1nbtTagCompound.setInteger("timeSharpening", timeSharpening);
+        return par1nbtTagCompound;
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt)
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt)
     {
-        readFromNBT(pkt.func_148857_g());
+        readFromNBT(pkt.getNbtCompound());
     }
 
     @Override
-    public Packet getDescriptionPacket()
+    public SPacketUpdateTileEntity getUpdatePacket()
     {
-        return IvTileEntityHelper.getStandardDescriptionPacket(this);
+        return (SPacketUpdateTileEntity) IvTileEntityHelper.getStandardDescriptionPacket(this);
     }
 
     @Override

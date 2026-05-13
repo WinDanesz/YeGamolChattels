@@ -5,8 +5,8 @@
 
 package ivorius.yegamolchattels.items;
 
-import ivorius.ivtoolkit.blocks.IvMultiBlockHelper;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
+import ivorius.yegamolchattels.multiblock.IvMultiBlockHelper;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import ivorius.yegamolchattels.blocks.Statue;
 import ivorius.yegamolchattels.blocks.TileEntityStatue;
 import net.minecraft.block.Block;
@@ -18,6 +18,11 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.MathHelper;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -25,29 +30,32 @@ import java.util.List;
 public class ItemStatue extends ItemBlock
 {
     public int statueMaterial;
+    private final Block placedBlock;
 
     public ItemStatue(Block block, Integer material)
     {
         super(block);
+        this.placedBlock = block;
         maxStackSize = 1;
 
         this.statueMaterial = material;
     }
 
     @Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int x, int y, int z, int blockSide, float hitX, float hitY, float hitZ)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        Statue statue = createStatue(par1ItemStack, par3World);
+        ItemStack stack = player.getHeldItem(hand);
+        Statue statue = createStatue(stack, world);
 
         if (statue != null)
         {
-            if (!par3World.isRemote) // Some entities start with random sizes
+            if (!world.isRemote) // Some entities start with random sizes
             {
                 int rotation = 0;
                 List<int[]> positions = getStatuePositions(statue.getEntity(), rotation);
 
                 IvMultiBlockHelper multiBlockHelper = new IvMultiBlockHelper();
-                if (multiBlockHelper.beginPlacing(positions, par3World, x, y, z, blockSide, par1ItemStack, par2EntityPlayer, this.field_150939_a, 0, rotation))
+                if (multiBlockHelper.beginPlacing(positions, world, pos.getX(), pos.getY(), pos.getZ(), facing.getIndex(), stack, player, placedBlock, 0, rotation))
                 {
                     for (int[] position : multiBlockHelper)
                     {
@@ -57,24 +65,25 @@ public class ItemStatue extends ItemBlock
                         {
                             TileEntityStatue tileEntityStatue = (TileEntityStatue) tileEntity;
                             tileEntityStatue.setStatue(statue);
-                            tileEntityStatue.setStatueRotationYaw((par2EntityPlayer.rotationYaw + 180.0f) % 360.0f);
+                            tileEntityStatue.setStatueRotationYaw((player.rotationYaw + 180.0f) % 360.0f);
                         }
                     }
 
-                    par1ItemStack.stackSize--;
+                    stack.shrink(1);
+                    return EnumActionResult.SUCCESS;
                 }
             }
 
-            return true;
+            return EnumActionResult.SUCCESS;
         }
 
-        return false;
+        return EnumActionResult.FAIL;
     }
 
     public static List<int[]> getStatuePositions(Entity entity, int rotation)
     {
-        int statueWidth = MathHelper.ceiling_float_int(entity.width);
-        int statueHeight = MathHelper.ceiling_float_int(entity.height);
+        int statueWidth = (int) Math.ceil(entity.width);
+        int statueHeight = (int) Math.ceil(entity.height);
 
         return IvMultiBlockHelper.getRotatedPositions(rotation, statueWidth, statueHeight, statueWidth);
     }
@@ -82,7 +91,7 @@ public class ItemStatue extends ItemBlock
     @Override
     public String getItemStackDisplayName(ItemStack par1ItemStack)
     {
-        String base = super.getUnlocalizedName(par1ItemStack) + ".base";
+        String base = getTranslationKey(par1ItemStack) + ".base";
 
         String entityName = getStatueEntityID(par1ItemStack);
         String localizedEntityName = entityName != null && entityName.length() > 0 ? I18n.format("entity." + entityName + ".name") : I18n.format("tile.ygcStatue.unknown");
@@ -94,7 +103,7 @@ public class ItemStatue extends ItemBlock
     }
 
     @Override
-    public void getSubItems(Item par1, CreativeTabs par2CreativeTabs, List par3List)
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items)
     {
 //        for (int var4 = 0; var4 < BlockStatue.statueCrafting.length / 2; ++var4)
 //        {

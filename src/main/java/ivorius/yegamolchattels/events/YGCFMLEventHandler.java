@@ -5,13 +5,13 @@
 
 package ivorius.yegamolchattels.events;
 
-import cpw.mods.fml.client.event.ConfigChangedEvent;
-import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import cpw.mods.fml.common.gameevent.PlayerEvent;
-import cpw.mods.fml.common.gameevent.TickEvent;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.client.event.ConfigChangedEvent;
+import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.PlayerEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import ivorius.yegamolchattels.YGCConfig;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.achievements.YGCAchievementList;
@@ -54,9 +54,9 @@ public class YGCFMLEventHandler
     @SubscribeEvent
     public void onConfigChanged(ConfigChangedEvent event)
     {
-        if (event instanceof ConfigChangedEvent.OnConfigChangedEvent && event.modID.equals(YeGamolChattels.MODID))
+        if (event instanceof ConfigChangedEvent.OnConfigChangedEvent && YeGamolChattels.MODID.equals(((ConfigChangedEvent.OnConfigChangedEvent) event).getModID()))
         {
-            YGCConfig.loadConfig(event.configID);
+            YGCConfig.loadConfig(((ConfigChangedEvent.OnConfigChangedEvent) event).getConfigID());
             if (YeGamolChattels.config.hasChanged())
                 YeGamolChattels.config.save();
         }
@@ -67,27 +67,27 @@ public class YGCFMLEventHandler
     {
         if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.itemShelf, 1, TileEntityItemShelfModel0.SHELF_WARDROBE)))
         {
-            event.player.triggerAchievement(YGCAchievementList.wardrobeCrafted);
+            YGCAchievementList.trigger(event.player, YGCAchievementList.wardrobeCrafted);
         }
         else if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.grandfatherClock)))
         {
-            event.player.triggerAchievement(YGCAchievementList.grandfatherClockCrafted);
+            YGCAchievementList.trigger(event.player, YGCAchievementList.grandfatherClockCrafted);
         }
         else if (event.crafting.isItemEqual(new ItemStack(YGCBlocks.weaponRack)))
         {
-            event.player.triggerAchievement(YGCAchievementList.weaponRackCrafted);
+            YGCAchievementList.trigger(event.player, YGCAchievementList.weaponRackCrafted);
         }
         else if (event.crafting.getItem() == YGCItems.refinedPlank)
         {
-            event.player.triggerAchievement(YGCAchievementList.refinedPlank);
+            YGCAchievementList.trigger(event.player, YGCAchievementList.refinedPlank);
         }
         else if (event.crafting.getItem() == YGCItems.flagLarge)
         {
-            event.player.triggerAchievement(YGCAchievementList.largeFlagCrafted);
+            YGCAchievementList.trigger(event.player, YGCAchievementList.largeFlagCrafted);
         }
         else if (event.crafting.getItem() == YGCItems.bannerLarge)
         {
-            event.player.triggerAchievement(YGCAchievementList.largeBannerCrafted);
+            YGCAchievementList.trigger(event.player, YGCAchievementList.largeBannerCrafted);
         }
     }
 }

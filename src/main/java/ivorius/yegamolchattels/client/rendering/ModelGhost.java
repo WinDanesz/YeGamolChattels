@@ -57,8 +57,8 @@ public class ModelGhost extends ModelBase
             tentacles[i].rotateAngleX = 0.2F * MathHelper.sin(f2 * 0.3F + i) + 0.4F;
         }
 
-        float f6 = MathHelper.sin(onGround * 3.141593F);
-        float f7 = MathHelper.sin((1.0F - (1.0F - onGround) * (1.0F - onGround)) * 3.141593F);
+        float f6 = MathHelper.sin(swingProgress * 3.141593F);
+        float f7 = MathHelper.sin((1.0F - (1.0F - swingProgress) * (1.0F - swingProgress)) * 3.141593F);
         rightArm.rotateAngleZ = 0.0F;
         leftArm.rotateAngleZ = 0.0F;
         rightArm.rotateAngleY = -(0.1F - f6 * 0.6F);

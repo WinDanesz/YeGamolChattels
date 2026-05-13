@@ -5,14 +5,13 @@
 
 package ivorius.yegamolchattels.client.rendering;
 
-import ivorius.ivtoolkit.items.IvItemRendererModel;
 import ivorius.yegamolchattels.blocks.TileEntityLootChest;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
 
-public class ModelLootChest extends ModelBase implements IvItemRendererModel.ItemModelRenderer
+public class ModelLootChest extends ModelBase implements ItemModelRenderer
 {
     //fields
     ModelRenderer front;

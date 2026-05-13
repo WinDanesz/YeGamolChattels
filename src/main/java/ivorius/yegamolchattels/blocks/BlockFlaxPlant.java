@@ -6,55 +6,32 @@
 package ivorius.yegamolchattels.blocks;
 
 import ivorius.yegamolchattels.items.YGCItems;
-import net.minecraft.block.Block;
 import net.minecraft.block.BlockCrops;
-import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.util.IIcon;
 
 /**
  * Created by lukas on 10.07.14.
  */
 public class BlockFlaxPlant extends BlockCrops
 {
-    private IIcon[] icons;
-
     @Override
-    public IIcon getIcon(int side, int metadata)
-    {
-        if (metadata < 0 || metadata > 7)
-            metadata = 7;
-
-        return icons[metadata];
-    }
-
-    @Override
-    protected Item func_149866_i()
+    protected Item getSeed()
     {
         return YGCItems.flaxSeeds;
     }
 
     @Override
-    protected Item func_149865_P()
+    protected Item getCrop()
     {
         return YGCItems.flaxFiber;
     }
 
     @Override
-    public void registerBlockIcons(IIconRegister p_149651_1_)
+    protected boolean canSustainBush(IBlockState state)
     {
-        this.icons = new IIcon[8];
-
-        for (int i = 0; i < this.icons.length; ++i)
-        {
-            this.icons[i] = p_149651_1_.registerIcon(this.getTextureName() + "_stage_" + i);
-        }
-    }
-
-    @Override
-    protected boolean canPlaceBlockOn(Block block)
-    {
-        return block == Blocks.farmland || block == Blocks.grass || block == Blocks.dirt;
+        net.minecraft.block.Block block = state.getBlock();
+        return block == Blocks.FARMLAND || block == Blocks.GRASS || block == Blocks.DIRT;
     }
 }

@@ -1,102 +1,62 @@
-/***************************************************************************************************
- * Copyright (c) 2014, Lukas Tenbrink.
- * http://lukas.axxim.net
- **************************************************************************************************/
-
 package ivorius.yegamolchattels.blocks;
 
-import ivorius.ivtoolkit.blocks.IvBlockMultiblock;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.yegamolchattels.YeGamolChattels;
+import ivorius.yegamolchattels.multiblock.IvBlockMultiblock;
 import ivorius.yegamolchattels.tabs.YGCCreativeTabs;
-import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.client.renderer.texture.IIconRegister;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.IIcon;
+import net.minecraft.util.EnumBlockRenderType;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class BlockGong extends IvBlockMultiblock
 {
-    public IIcon[] icons = new IIcon[3];
-
     public BlockGong(Material material)
     {
         super(material);
-
         setCreativeTab(YGCCreativeTabs.tabMain);
     }
 
     @Override
-    public int getRenderType()
+    public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return -1;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
-    public boolean isOpaqueCube()
-    {
-        return false;
-    }
-
-    @Override
-    public boolean renderAsNormalBlock()
+    public boolean isOpaqueCube(IBlockState state)
     {
         return false;
     }
 
     @Override
-    public void onBlockClicked(World par1World, int par2, int par3, int par4, EntityPlayer par5EntityPlayer)
+    public boolean isFullCube(IBlockState state)
     {
-        super.onBlockClicked(par1World, par2, par3, par4, par5EntityPlayer);
+        return false;
+    }
 
-        TileEntity tileEntity = par1World.getTileEntity(par2, par3, par4);
-
+    @Override
+    public boolean onBlockActivated(World world, BlockPos pos, IBlockState state, EntityPlayer player, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
+    {
+        TileEntity tileEntity = world.getTileEntity(pos);
         if (tileEntity instanceof TileEntityGong)
-            ((TileEntityGong) tileEntity).hitGong(par5EntityPlayer.getHeldItem(), par5EntityPlayer);
+            ((TileEntityGong) tileEntity).hitGong(player.getHeldItem(hand), player);
+        return true;
     }
 
     @Override
-    public boolean onBlockActivated(World par1World, int par2, int par3, int par4, EntityPlayer par5EntityPlayer, int par6, float par7, float par8, float par9)
-    {
-        TileEntity tileEntity = par1World.getTileEntity(par2, par3, par4);
-
-        if (tileEntity instanceof TileEntityGong)
-            ((TileEntityGong) tileEntity).hitGong(par5EntityPlayer.getHeldItem(), par5EntityPlayer);
-
-        return super.onBlockActivated(par1World, par2, par3, par4, par5EntityPlayer, par6, par7, par8, par9);
-    }
-
-    @Override
-    public void parentBlockHarvestItem(World par1World, IvTileEntityMultiBlock tileEntity, int parentX, int parentY, int parentZ, Block block, int blockMeta)
-    {
-        super.parentBlockHarvestItem(par1World, tileEntity, parentX, parentY, parentZ, block, blockMeta);
-
-        super.dropBlockAsItem(par1World, parentX, parentY, parentZ, new ItemStack(this, 1, blockMeta));
-    }
-
-    @Override
-    public TileEntity createNewTileEntity(World var1, int i)
+    public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TileEntityGong();
     }
 
     @Override
-    public IIcon getIcon(int par1, int par2)
+    public void parentBlockHarvestItem(World world, ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock tileEntity, BlockPos pos, IBlockState state)
     {
-        if (icons.length > par2)
-            return icons[par2];
-
-        return icons[0];
-    }
-
-    @Override
-    public void registerBlockIcons(IIconRegister par1IconRegister)
-    {
-        icons[0] = par1IconRegister.registerIcon(YeGamolChattels.textureBase + "gongSmall");
-        icons[1] = par1IconRegister.registerIcon(YeGamolChattels.textureBase + "gongMedium");
-        icons[2] = par1IconRegister.registerIcon(YeGamolChattels.textureBase + "gongLarge");
+        spawnAsEntity(world, pos, new ItemStack(this, 1, damageDropped(state)));
     }
 }

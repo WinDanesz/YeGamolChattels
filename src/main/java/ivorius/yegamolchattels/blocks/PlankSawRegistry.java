@@ -49,7 +49,7 @@ public class PlankSawRegistry
         if (entry != null)
         {
             ItemStack result = entry.getResult(ingredient);
-            result.stackSize = stackSize;
+            result.setCount(stackSize);
             return result;
         }
         else

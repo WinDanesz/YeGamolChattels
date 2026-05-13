@@ -109,7 +109,7 @@ public class YGCConfig
     private static ItemStack tryParseItemStack(String json)
     {
         NBTTagCompound compound = tryParseTagCompound(json);
-        return compound != null ? ItemStack.loadItemStackFromNBT(compound) : null;
+        return compound != null ? new ItemStack(compound) : null;
     }
 
     private static NBTTagCompound tryParseTagCompound(String json)
@@ -118,7 +118,7 @@ public class YGCConfig
 
         try
         {
-            sourceNBT = JsonToNBT.func_150315_a(json);
+            sourceNBT = JsonToNBT.getTagFromJson(json);
         }
         catch (NBTException e)
         {
@@ -146,6 +146,6 @@ public class YGCConfig
 
     public static boolean mayItemBeStoredInShelf(ItemStack stack)
     {
-        return !itemShelfBlacklist.contains(Item.itemRegistry.getNameForObject(stack.getItem()));
+        return !itemShelfBlacklist.contains(String.valueOf(Item.REGISTRY.getNameForObject(stack.getItem())));
     }
 }

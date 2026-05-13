@@ -1,16 +1,16 @@
 [
 {
-  "modid": "yegamolchattels",
-  "name": "Ye Gamol Chattels",
-  "description": "Adds a number of mostly decorational items to the game, with a focus on keeping the Minecraft aesthetics both visually and thematically.",
-  "version": "${version}",
-  "mcversion": "${mcversion}",
-  "url": "http://www.minecraftforum.net/topic/563257-152",
+  "modid": "${mod_id}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "version": "${mod_version}",
+  "mcversion": "1.12.2",
+  "url": "${mod_url}",
   "updateUrl": "",
-  "authors": ["Ivorius", "TripleHeadedSheep"],
-  "credits": "Ivorius: Development, TripleHeadedSheep: Visuals, BubbaWoop: Loot Chest",
-  "logoFile": "gfx/yegamolchattels/logo.png",
+  "authorList": ["Ivorius", "TripleHeadedSheep"],
+  "credits": "${mod_credits}",
+  "logoFile": "${mod_logo_path}",
   "screenshots": [],
-  "dependencies": []
+  "dependencies": ["required-after:ivtoolkit"]
 }
 ]

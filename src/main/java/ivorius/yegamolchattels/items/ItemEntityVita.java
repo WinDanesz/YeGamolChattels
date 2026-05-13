@@ -5,7 +5,6 @@
 
 package ivorius.yegamolchattels.items;
 
-import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityList;
@@ -15,12 +14,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagString;
-import net.minecraft.util.StatCollector;
+import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Created by lukas on 27.07.14.
@@ -28,30 +24,33 @@ import java.util.Set;
 public class ItemEntityVita extends Item
 {
     @Override
-    public void getSubItems(Item item, CreativeTabs tab, List list)
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> items)
     {
-        for (Map.Entry<String, Class> mobID : (Set<Map.Entry<String, Class>>) EntityList.stringToClassMapping.entrySet())
+        if (!isInCreativeTab(tab))
+            return;
+
+        for (ResourceLocation mobID : EntityList.getEntityNameList())
         {
-            if (canClassBeValidVita(mobID.getValue()))
-                list.add(createVitaItemStack(item, mobID.getKey()));
+            Class<? extends Entity> entityClass = EntityList.getClass(mobID);
+            if (entityClass != null && canClassBeValidVita(entityClass))
+                items.add(createVitaItemStack(this, mobID.toString()));
         }
     }
 
     @Override
     public String getItemStackDisplayName(ItemStack par1ItemStack)
     {
-        String base = super.getUnlocalizedName(par1ItemStack) + ".base";
+        String base = getTranslationKey(par1ItemStack) + ".base";
 
         String entityName = getEntityID(par1ItemStack);
         String localizedEntityName = entityName != null && entityName.length() > 0
-                ? StatCollector.translateToLocalFormatted("entity." + entityName + ".name")
-                : StatCollector.translateToLocalFormatted("tile.ygcStatue.unknown");
+                ? net.minecraft.util.text.translation.I18n.translateToLocal("entity." + entityName + ".name")
+                : net.minecraft.util.text.translation.I18n.translateToLocal("tile.ygcStatue.unknown");
 
-        return StatCollector.translateToLocalFormatted(base, localizedEntityName);
+        return net.minecraft.util.text.translation.I18n.translateToLocalFormatted(base, localizedEntityName);
     }
 
-    @Override
-    public int getColorFromItemStack(ItemStack par1ItemStack, int par2)
+    public int getColorFromItemstack(ItemStack par1ItemStack, int par2)
     {
         return getEntityID(par1ItemStack).hashCode() | 0xff000000;
     }
@@ -74,7 +73,7 @@ public class ItemEntityVita extends Item
         if (stack.hasTagCompound() && stack.getTagCompound().hasKey("vitaEntity"))
             return EntityList.createEntityFromNBT(getEntityTag(stack), world);
         else
-            return EntityList.createEntityByName(getEntityID(stack), world);
+            return EntityList.createEntityByIDFromName(new ResourceLocation(getEntityID(stack)), world);
     }
 
     public static void setEntityByID(ItemStack stack, String entityName)
@@ -101,7 +100,7 @@ public class ItemEntityVita extends Item
         ItemStack stack = new ItemStack(item);
         setEntity(stack, entity);
 
-        Entity savedEntity = createEntity(stack, entity.worldObj);
+        Entity savedEntity = createEntity(stack, entity.world);
 
         if (savedEntity != null)
         {
@@ -111,7 +110,6 @@ public class ItemEntityVita extends Item
             {
                 EntityLivingBase entityLiving = (EntityLivingBase) savedEntity;
                 entityLiving.deathTime = 0;
-                entityLiving.attackTime = 0;
                 entityLiving.hurtTime = 0;
                 entityLiving.extinguish();
                 entityLiving.setHealth(entityLiving.getMaxHealth());

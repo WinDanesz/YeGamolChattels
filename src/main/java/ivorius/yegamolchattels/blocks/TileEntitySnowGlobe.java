@@ -5,13 +5,13 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityHelper;
-import ivorius.ivtoolkit.math.IvMathHelper;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.multiblock.IvTileEntityHelper;
+import ivorius.yegamolchattels.math.IvMathHelper;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.client.rendering.SnowGlobeCallListHandler;
 import net.minecraft.init.Items;
@@ -19,11 +19,12 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.math.AxisAlignedBB;
 
-public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHandler
+public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHandler, ITickable
 {
     public boolean needsVisualUpdate = true;
     private int timeUntilVisualUpdate = 100;
@@ -32,11 +33,12 @@ public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHand
     public float realityGlobeRatio;
 
     @Override
-    public void updateEntity()
+    public void update()
     {
-        super.updateEntity();
+        if (world == null)
+            return;
 
-        if (worldObj.isRemote)
+        if (world.isRemote)
         {
             if (timeUntilVisualUpdate <= 0 && !displaysDefaultHouse())
             {
@@ -69,14 +71,14 @@ public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHand
 
     public boolean useItem(ItemStack stack)
     {
-        if (stack != null && stack.getItem() == Items.ender_eye)
+        if (stack != null && stack.getItem() == Items.ENDER_EYE)
         {
-            if (!worldObj.isRemote)
+            if (!world.isRemote)
             {
-                stack.stackSize--;
+                stack.shrink(1);
                 isRealityGlobe = !isRealityGlobe;
 
-                IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "snowGlobeData", YeGamolChattels.network);
+                NetworkHelperServer.sendTileEntityUpdatePacket(this, "snowGlobeData", YeGamolChattels.network);
                 markDirty();
             }
 
@@ -87,12 +89,13 @@ public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHand
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound nbt)
+    public NBTTagCompound writeToNBT(NBTTagCompound nbt)
     {
         super.writeToNBT(nbt);
 
         nbt.setBoolean("isRealityGlobe", isRealityGlobe);
         nbt.setFloat("realityGlobePercent", realityGlobeRatio);
+        return nbt;
     }
 
     @Override
@@ -120,15 +123,15 @@ public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHand
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt)
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt)
     {
-        readFromNBT(pkt.func_148857_g());
+        readFromNBT(pkt.getNbtCompound());
     }
 
     @Override
-    public Packet getDescriptionPacket()
+    public SPacketUpdateTileEntity getUpdatePacket()
     {
-        return IvTileEntityHelper.getStandardDescriptionPacket(this);
+        return (SPacketUpdateTileEntity) IvTileEntityHelper.getStandardDescriptionPacket(this);
     }
 
     @Override
@@ -173,7 +176,7 @@ public class TileEntitySnowGlobe extends TileEntity implements PartialUpdateHand
     {
         super.invalidate();
 
-        if (worldObj.isRemote)
+        if (world != null && world.isRemote)
             addCallListForDestruction();
     }
 

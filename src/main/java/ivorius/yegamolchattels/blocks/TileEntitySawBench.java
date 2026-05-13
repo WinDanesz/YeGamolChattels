@@ -1,21 +1,21 @@
 package ivorius.yegamolchattels.blocks;
 
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.ivtoolkit.entities.IvEntityHelper;
-import ivorius.ivtoolkit.network.ClientEventHandler;
-import ivorius.ivtoolkit.network.IvNetworkHelperClient;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
-import ivorius.ivtoolkit.tools.IvSideClient;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.gui.YGCGuiHandler;
+import ivorius.yegamolchattels.network.ClientEventHandler;
+import ivorius.yegamolchattels.network.NetworkHelperClient;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
+import ivorius.yegamolchattels.utils.PlayerItemHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
+import net.minecraft.client.Minecraft;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.util.ChatComponentTranslation;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.text.TextComponentTranslation;
 import org.lwjgl.util.vector.Vector2f;
 
 /**
@@ -41,24 +41,24 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
             {
                 if (!worldObj.isRemote)
                 {
-                    if (stack.stackSize >= 2)
+                    if (stack.getCount() >= 2)
                     {
                         containedItem = stack.copy();
-                        containedItem.stackSize = 2;
+                        containedItem.setCount(2);
                         cutsLeft = cutsPerLog;
                         woodCutScore = 0.0f;
                         woodCutY = 0.0f;
                         calculateIsInWood();
 
-                        stack.stackSize -= 2;
+                        stack.shrink(2);
 
                         markDirty();
-                        worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                        notifyBlockUpdate();
                     }
                     else
                     {
                         if (entity instanceof EntityPlayer)
-                            ((EntityPlayer) entity).addChatMessage(new ChatComponentTranslation("tile.ygcSawBench.morewood"));
+                            ((EntityPlayer) entity).sendMessage(new TextComponentTranslation("tile.ygcSawBench.morewood"));
                     }
                 }
 
@@ -75,12 +75,12 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
         {
             if (!worldObj.isRemote)
             {
-                if (IvEntityHelper.addAsCurrentItem(entityLiving, containedItem))
+                if (PlayerItemHelper.addAsCurrentItem(entityLiving, containedItem))
                 {
                     containedItem = null;
 
                     markDirty();
-                    worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+                    notifyBlockUpdate();
                 }
             }
 
@@ -111,12 +111,12 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
         {
             ItemStack usedItem = player.inventory.getStackInSlot(usedItemIndex);
             usedItem.damageItem(1, player);
-            if (usedItem.stackSize <= 0)
+            if (usedItem.getCount() <= 0)
                 player.inventory.setInventorySlotContents(usedItemIndex, null);
             player.inventory.markDirty();
 
             float finalScore = score * score * 0.7f + score * 0.3f;
-            int planks = MathHelper.floor_float(finalScore * 4.0f + 0.5f);
+            int planks = MathHelper.floor(finalScore * 4.0f + 0.5f);
 
             if (planks > 0)
             {
@@ -128,7 +128,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
                 containedItem = null;
 
             markDirty();
-            worldObj.markBlockForUpdate(xCoord, yCoord, zCoord);
+            notifyBlockUpdate();
         }
     }
 
@@ -148,7 +148,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
             float plusScore = 0.0f;
             if (movInWood.y > 0.0f)
             {
-                float vecLength = MathHelper.sqrt_float(movInWood.x * movInWood.x + movInWood.y * movInWood.y);
+                float vecLength = MathHelper.sqrt(movInWood.x * movInWood.x + movInWood.y * movInWood.y);
 
                 float nX = movInWood.x / vecLength;
                 float sideMov = Math.abs(nX);
@@ -165,14 +165,14 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
             }
 
             if (worldObj.isRemote)
-                IvNetworkHelperClient.sendTileEntityEventPacket(this, "sawMove", YeGamolChattels.network);
+                NetworkHelperClient.sendTileEntityEventPacket(this, "sawMove", YeGamolChattels.network);
 
             if (woodCutY >= 1.0f)
             {
                 chopOffWood(woodCutScore, player, usedItemIndex);
 
                 if (worldObj.isRemote)
-                    IvNetworkHelperClient.sendTileEntityEventPacket(this, "woodChop", YeGamolChattels.network, usedItemIndex);
+                    NetworkHelperClient.sendTileEntityEventPacket(this, "woodChop", YeGamolChattels.network, usedItemIndex);
             }
 
             return plusScore;
@@ -185,7 +185,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
                 calculateIsInWood();
 
             if (worldObj.isRemote)
-                IvNetworkHelperClient.sendTileEntityEventPacket(this, "sawMove", YeGamolChattels.network);
+                NetworkHelperClient.sendTileEntityEventPacket(this, "sawMove", YeGamolChattels.network);
         }
 
         return 0.0f;
@@ -193,8 +193,8 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
 
     public Vector2f possibleMovement(float x, float y)
     {
-        x = MathHelper.clamp_float(sawPositionX + x, -0.3f, 0.3f);
-        y = MathHelper.clamp_float(sawPositionY + y, -0.2f, 1.2f);
+        x = MathHelper.clamp(sawPositionX + x, -0.3f, 0.3f);
+        y = MathHelper.clamp(sawPositionY + y, -0.2f, 1.2f);
         return new Vector2f(x - sawPositionX, y - sawPositionY);
     }
 
@@ -218,7 +218,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
     {
         super.readFromNBT(par1nbtTagCompound);
 
-        containedItem = ItemStack.loadItemStackFromNBT(par1nbtTagCompound.getCompoundTag("containedItem"));
+        containedItem = new ItemStack(par1nbtTagCompound.getCompoundTag("containedItem"));
 
         sawPositionX = par1nbtTagCompound.getFloat("sawPositionX");
         sawPositionY = par1nbtTagCompound.getFloat("sawPositionY");
@@ -229,7 +229,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
@@ -246,6 +246,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
         par1nbtTagCompound.setFloat("woodCutScore", woodCutScore);
         par1nbtTagCompound.setInteger("cutsLeft", cutsLeft);
         par1nbtTagCompound.setBoolean("isInWood", isInWood);
+        return par1nbtTagCompound;
     }
 
     @Override
@@ -272,7 +273,7 @@ public class TileEntitySawBench extends IvTileEntityMultiBlock implements Partia
             woodCutScore = buffer.readFloat();
             isInWood = buffer.readBoolean();
 
-            IvSideClient.getClientPlayer().openGui(YeGamolChattels.instance, YGCGuiHandler.plankSawGuiID, worldObj, xCoord, yCoord, zCoord);
+            Minecraft.getMinecraft().player.openGui(YeGamolChattels.instance, YGCGuiHandler.plankSawGuiID, worldObj, xCoord, yCoord, zCoord);
         }
     }
 

@@ -5,14 +5,13 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import cpw.mods.fml.common.network.ByteBufUtils;
-import cpw.mods.fml.relauncher.Side;
-import cpw.mods.fml.relauncher.SideOnly;
+import net.minecraftforge.fml.common.network.ByteBufUtils;
+import net.minecraftforge.fml.relauncher.Side;
+import net.minecraftforge.fml.relauncher.SideOnly;
 import io.netty.buffer.ByteBuf;
-import ivorius.ivtoolkit.blocks.IvTileEntityMultiBlock;
-import ivorius.ivtoolkit.network.IvNetworkHelperServer;
-import ivorius.ivtoolkit.network.PartialUpdateHandler;
-import ivorius.ivtoolkit.tools.IvDateHelper;
+import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
+import ivorius.yegamolchattels.network.NetworkHelperServer;
+import ivorius.yegamolchattels.network.PartialUpdateHandler;
 import ivorius.yegamolchattels.YGCConfig;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.achievements.YGCAchievementList;
@@ -32,12 +31,13 @@ import net.minecraft.entity.monster.EntityZombie;
 import net.minecraft.entity.passive.EntityPig;
 import net.minecraft.entity.passive.EntityVillager;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.init.Blocks;
+import net.minecraft.init.MobEffects;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.potion.Potion;
 import net.minecraft.potion.PotionEffect;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
 
@@ -58,7 +58,7 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
 
     public void statueDataChanged()
     {
-        IvNetworkHelperServer.sendTileEntityUpdatePacket(this, "statueData", YeGamolChattels.network);
+        NetworkHelperServer.sendTileEntityUpdatePacket(this, "statueData", YeGamolChattels.network);
         markDirty();
     }
 
@@ -73,21 +73,15 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
     }
 
     @Override
-    public void setWorldObj(World world)
+    public void onLoad()
     {
-        super.setWorldObj(world);
+        super.onLoad();
 
         if (storedStatueTag != null)
         {
             createStatueFromNBT(storedStatueTag);
             storedStatueTag = null;
         }
-    }
-
-    @Override
-    public boolean canUpdate()
-    {
-        return false;
     }
 
     public boolean letStatueComeAlive()
@@ -114,24 +108,24 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
 
                     Statue.BlockFragment statueBlock = statue.getMaterial();
                     int indefiniteTime = 9999999;
-                    if (statueBlock.getBlock().getMaterial() == Material.rock)
+                    if (statueEntity instanceof EntityLivingBase && statueBlock.getState().getMaterial() == Material.ROCK)
                     {
-                        ((EntityLiving) statueEntity).addPotionEffect(new PotionEffect(Potion.resistance.id, indefiniteTime, 0, true));
-                        ((EntityLiving) statueEntity).addPotionEffect(new PotionEffect(Potion.fireResistance.id, indefiniteTime, 0, true));
+                        ((EntityLivingBase) statueEntity).addPotionEffect(new PotionEffect(MobEffects.RESISTANCE, indefiniteTime, 0, true, false));
+                        ((EntityLivingBase) statueEntity).addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, indefiniteTime, 0, true, false));
                     }
-                    else if (statueBlock.getBlock().getMaterial() == Material.iron)
+                    else if (statueEntity instanceof EntityLivingBase && statueBlock.getState().getMaterial() == Material.IRON)
                     {
-                        ((EntityLiving) statueEntity).addPotionEffect(new PotionEffect(Potion.fireResistance.id, indefiniteTime, 0, true));
+                        ((EntityLivingBase) statueEntity).addPotionEffect(new PotionEffect(MobEffects.FIRE_RESISTANCE, indefiniteTime, 0, true, false));
                     }
 
                     if ("Zombie".equals(EntityList.getEntityString(statueEntity)))
                     {
-                        EntityPlayer player = worldObj.getClosestPlayer(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 10.0);
+                        EntityPlayer player = worldObj.getClosestPlayer(xCoord + 0.5, yCoord + 0.5, zCoord + 0.5, 10.0, false);
                         if (player != null)
-                            player.triggerAchievement(YGCAchievementList.zombieStatueReanimated);
+                            YGCAchievementList.trigger(player, YGCAchievementList.zombieStatueReanimated);
                     }
 
-                    worldObj.spawnEntityInWorld(statueEntity);
+                    worldObj.spawnEntity(statueEntity);
                 }
 
                 return true;
@@ -142,11 +136,12 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
     }
 
     @Override
-    public void writeToNBT(NBTTagCompound par1NBTTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1NBTTagCompound)
     {
         super.writeToNBT(par1NBTTagCompound);
 
         writeStatueDataToNBT(par1NBTTagCompound);
+        return par1NBTTagCompound;
     }
 
     @Override
@@ -183,7 +178,7 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
         if (compound.hasKey("statue"))
             statue = new Statue(compound.getCompoundTag("statue"), worldObj);
         else if (isParent())
-            statue = new Statue(new EntityPig(worldObj), new Statue.BlockFragment(Blocks.stone, 0), 0.0f, 0.0f, 0.0f, 2.4f);
+            statue = new Statue(new EntityPig(worldObj), new Statue.BlockFragment(Blocks.STONE, 0), 0.0f, 0.0f, 0.0f, 2.4f);
         else
             statue = null;
 
@@ -200,19 +195,19 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
 
     public boolean tryEquipping(ItemStack item)
     {
-        if (item != null && statue != null)
+        if (!item.isEmpty() && statue != null)
         {
             if (isEntityEquippable())
             {
-                Entity statueEntity = statue.getEntity();
-                int slot = EntityLiving.getArmorPosition(item);
+                EntityLivingBase statueEntity = (EntityLivingBase) statue.getEntity();
+                EntityEquipmentSlot slot = EntityLiving.getSlotForItemStack(item);
 
-                if (slot >= 0 && statueEntity.getLastActiveItems()[slot] == null)
+                if (statueEntity.getItemStackFromSlot(slot).isEmpty())
                 {
                     if (!worldObj.isRemote)
                     {
-                        statueEntity.setCurrentItemOrArmor(slot, item.copy());
-                        item.stackSize = 0;
+                        statueEntity.setItemStackToSlot(slot, item.copy());
+                        item.shrink(1);
 
                         statueDataChanged();
                     }
@@ -241,15 +236,16 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
 
     public void addEquipmentToInventory(EntityPlayer player)
     {
-        if (statue != null)
+        if (statue != null && statue.getEntity() instanceof EntityLivingBase)
         {
-            Entity statueEntity = statue.getEntity();
-            for (int i = 0; i < statueEntity.getLastActiveItems().length; i++)
+            EntityLivingBase statueEntity = (EntityLivingBase) statue.getEntity();
+            for (EntityEquipmentSlot slot : EntityEquipmentSlot.values())
             {
-                if (statueEntity.getLastActiveItems()[i] != null)
+                ItemStack stack = statueEntity.getItemStackFromSlot(slot);
+                if (!stack.isEmpty())
                 {
-                    if (player.inventory.addItemStackToInventory(statueEntity.getLastActiveItems()[i]))
-                        statueEntity.getLastActiveItems()[i] = null;
+                    if (player.inventory.addItemStackToInventory(stack))
+                        statueEntity.setItemStackToSlot(slot, ItemStack.EMPTY);
                 }
             }
 
@@ -262,23 +258,24 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
 
     public void dropEquipment()
     {
-        if (!worldObj.isRemote && statue != null)
+        if (!worldObj.isRemote && statue != null && statue.getEntity() instanceof EntityLivingBase)
         {
-            Entity statueEntity = statue.getEntity();
+            EntityLivingBase statueEntity = (EntityLivingBase) statue.getEntity();
 
-            for (int i = 0; i < statueEntity.getLastActiveItems().length; i++)
+            for (EntityEquipmentSlot slot : EntityEquipmentSlot.values())
             {
-                if (statueEntity.getLastActiveItems()[i] != null)
+                ItemStack stack = statueEntity.getItemStackFromSlot(slot);
+                if (!stack.isEmpty())
                 {
                     float var7 = 0.7F;
                     double var8 = worldObj.rand.nextFloat() * var7 + (1.0F - var7) * 0.5D;
                     double var10 = worldObj.rand.nextFloat() * var7 + (1.0F - var7) * 0.2D + 0.6D;
                     double var12 = worldObj.rand.nextFloat() * var7 + (1.0F - var7) * 0.5D;
-                    EntityItem var14 = new EntityItem(worldObj, xCoord + var8, yCoord + var10, zCoord + var12, statueEntity.getLastActiveItems()[i]);
-                    var14.delayBeforeCanPickup = 10;
-                    worldObj.spawnEntityInWorld(var14);
+                    EntityItem var14 = new EntityItem(worldObj, xCoord + var8, yCoord + var10, zCoord + var12, stack.copy());
+                    var14.setPickupDelay(10);
+                    worldObj.spawnEntity(var14);
 
-                    statueEntity.getLastActiveItems()[i] = null;
+                    statueEntity.setItemStackToSlot(slot, ItemStack.EMPTY);
                 }
             }
 
@@ -292,8 +289,10 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
         if (statue != null)
         {
             Entity statueEntity = statue.getEntity();
-            double var3 = statueEntity.boundingBox.getAverageEdgeLength();
-            var3 *= 64.0D * statueEntity.renderDistanceWeight;
+            double var3 = statueEntity.getEntityBoundingBox().getAverageEdgeLength();
+            if (var3 == 0.0D)
+                var3 = 1.0D;
+            var3 *= 64.0D;
 
             return var3 * var3;
         }
@@ -390,8 +389,6 @@ public class TileEntityStatue extends IvTileEntityMultiBlock implements PartialU
     @Override
     public boolean shouldRenderInPass(int pass)
     {
-        if (statue != null)
-            return statue.getMaterial().getBlock().canRenderInPass(pass);
-        return false;
+        return statue != null && pass == 0;
     }
 }

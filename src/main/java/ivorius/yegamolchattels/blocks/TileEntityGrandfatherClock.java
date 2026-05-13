@@ -5,15 +5,19 @@
 
 package ivorius.yegamolchattels.blocks;
 
-import ivorius.ivtoolkit.blocks.IvTileEntityHelper;
+import ivorius.yegamolchattels.multiblock.IvTileEntityHelper;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.network.NetworkManager;
 import net.minecraft.network.Packet;
-import net.minecraft.network.play.server.S35PacketUpdateTileEntity;
+import net.minecraft.network.play.server.SPacketUpdateTileEntity;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.util.AxisAlignedBB;
+import net.minecraft.util.ITickable;
+import net.minecraft.util.SoundCategory;
+import net.minecraft.init.SoundEvents;
+import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 
-public class TileEntityGrandfatherClock extends TileEntity
+public class TileEntityGrandfatherClock extends TileEntity implements ITickable
 {
     public int ticksAlive;
 
@@ -25,25 +29,26 @@ public class TileEntityGrandfatherClock extends TileEntity
     public int delayUntilSound = 0;
 
     @Override
-    public void updateEntity()
+    public void update()
     {
-        super.updateEntity();
+        if (world == null || pos == null)
+            return;
 
-        if (worldObj.provider.isSurfaceWorld())
+        if (world.provider.isSurfaceWorld())
         {
-            clockTimeShown = worldObj.getWorldTime();
+            clockTimeShown = world.getWorldTime();
             pendulumTimeShown = ticksAlive * 20;
         }
         else
         {
-            clockTimeMotion += worldObj.rand.nextLong() % 301L;
+            clockTimeMotion += world.rand.nextLong() % 301L;
             if (clockTimeMotion > 1500L)
                 clockTimeMotion = 1500L;
             if (clockTimeMotion < -1500L)
                 clockTimeMotion = -1500L;
             clockTimeShown += clockTimeMotion;
 
-            pendulumTimeMotion += worldObj.rand.nextLong() % 21L;
+            pendulumTimeMotion += world.rand.nextLong() % 21L;
             if (pendulumTimeMotion > 100L)
                 pendulumTimeMotion = 100L;
             if (pendulumTimeMotion < -100L)
@@ -51,25 +56,25 @@ public class TileEntityGrandfatherClock extends TileEntity
             pendulumTimeShown += pendulumTimeMotion;
         }
 
-        if (!worldObj.isRemote && (getBlockMetadata() & 1) == 0)
+        if (!world.isRemote && (getBlockMetadata() & 1) == 0)
         {
             if (delayUntilSound <= 0)
             {
-                if (worldObj.getWorldTime() % (24000 / 6) == 0)
+                if (world.getWorldTime() % (24000 / 6) == 0)
                 {
-                    worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 1.0f, zCoord + 0.5f, "note.pling", 0.2f, 0.01f);
-                    worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 1.0f, zCoord + 0.5f, "random.orb", 1.0f, 0.01f);
-                    worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 1.0f, zCoord + 0.5f, "random.break", 0.3f, 0.1f);
+                    playSound(SoundEvents.BLOCK_NOTE_HARP, 0.2f, 0.01f);
+                    playSound(SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 0.01f);
+                    playSound(SoundEvents.ENTITY_ITEM_BREAK, 0.3f, 0.1f);
                     delayUntilSound = 10;
                 }
                 else if (ticksAlive % 40 == 0)
                 {
-                    worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 1.0f, zCoord + 0.5f, "random.click", 0.1f, 0.5f);
+                    playSound(SoundEvents.UI_BUTTON_CLICK, 0.1f, 0.5f);
                     delayUntilSound = 10;
                 }
                 else if (ticksAlive % 40 == 20)
                 {
-                    worldObj.playSoundEffect(xCoord + 0.5f, yCoord + 1.0f, zCoord + 0.5f, "random.click", 0.1f, 0.6f);
+                    playSound(SoundEvents.UI_BUTTON_CLICK, 0.1f, 0.6f);
                     delayUntilSound = 10;
                 }
             }
@@ -80,12 +85,18 @@ public class TileEntityGrandfatherClock extends TileEntity
         ticksAlive++;
     }
 
+    private void playSound(net.minecraft.util.SoundEvent soundEvent, float volume, float pitch)
+    {
+        world.playSound(null, pos.getX() + 0.5f, pos.getY() + 1.0f, pos.getZ() + 0.5f, soundEvent, SoundCategory.BLOCKS, volume, pitch);
+    }
+
     @Override
-    public void writeToNBT(NBTTagCompound par1nbtTagCompound)
+    public NBTTagCompound writeToNBT(NBTTagCompound par1nbtTagCompound)
     {
         super.writeToNBT(par1nbtTagCompound);
 
         par1nbtTagCompound.setInteger("ticksAlive", ticksAlive);
+        return par1nbtTagCompound;
     }
 
     @Override
@@ -97,20 +108,20 @@ public class TileEntityGrandfatherClock extends TileEntity
     }
 
     @Override
-    public void onDataPacket(NetworkManager net, S35PacketUpdateTileEntity pkt)
+    public void onDataPacket(NetworkManager net, SPacketUpdateTileEntity pkt)
     {
-        readFromNBT(pkt.func_148857_g());
+        readFromNBT(pkt.getNbtCompound());
     }
 
     @Override
     public AxisAlignedBB getRenderBoundingBox()
     {
-        return AxisAlignedBB.getBoundingBox(xCoord, yCoord, zCoord, xCoord + 1, yCoord + 2, zCoord + 1);
+        return new AxisAlignedBB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 2, pos.getZ() + 1);
     }
 
     @Override
-    public Packet getDescriptionPacket()
+    public SPacketUpdateTileEntity getUpdatePacket()
     {
-        return IvTileEntityHelper.getStandardDescriptionPacket(this);
+        return (SPacketUpdateTileEntity) IvTileEntityHelper.getStandardDescriptionPacket(this);
     }
 }

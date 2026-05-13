@@ -5,93 +5,67 @@
 
 package ivorius.yegamolchattels.items;
 
-import ivorius.ivtoolkit.blocks.IvMultiBlockHelper;
+import ivorius.yegamolchattels.multiblock.IvMultiBlockHelper;
 import ivorius.yegamolchattels.blocks.TileEntityWeaponRack;
 import ivorius.yegamolchattels.blocks.YGCBlocks;
 import net.minecraft.block.Block;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumActionResult;
+import net.minecraft.util.EnumFacing;
+import net.minecraft.util.EnumHand;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
 public class ItemWeaponRack extends ItemBlock
 {
+    private final Block placedBlock;
+
     public ItemWeaponRack(Block block)
     {
         super(block);
+        this.placedBlock = block;
         maxStackSize = 16;
     }
 
     @Override
-    public boolean onItemUse(ItemStack par1ItemStack, EntityPlayer par2EntityPlayer, World par3World, int x, int y, int z, int blockSide, float par8, float par9, float par10)
+    public EnumActionResult onItemUse(EntityPlayer player, World world, BlockPos pos, EnumHand hand, EnumFacing facing, float hitX, float hitY, float hitZ)
     {
-        Block prevBlock = par3World.getBlock(x, y, z);
-        int prevMeta = par3World.getBlockMetadata(x, y, z);
+        if (facing == EnumFacing.DOWN)
+            return EnumActionResult.FAIL;
 
-        if (prevBlock == Blocks.snow_layer && prevMeta < 1)
-        {
-            blockSide = 1;
-        }
-        else if (prevBlock != Blocks.vine && prevBlock != Blocks.tallgrass && prevBlock != Blocks.deadbush && !prevBlock.isReplaceable(par3World, x, y, z))
-        {
-            if (blockSide == 0)
-                --y;
-            if (blockSide == 1)
-                ++y;
-            if (blockSide == 2)
-                --z;
-            if (blockSide == 3)
-                ++z;
-            if (blockSide == 4)
-                --x;
-            if (blockSide == 5)
-                ++x;
-        }
-        else
-        {
-            blockSide = 1; // When replacing a block, this should be on ground
-        }
-
-        if (blockSide == 0)
-        {
-            return false;
-        }
-
-        Block block = YGCBlocks.weaponRack;
-        boolean onWall = blockSide != 1;
-
-        if (!block.canPlaceBlockAt(par3World, x, y, z))
-        {
-            return false;
-        }
+        BlockPos placePos = pos.offset(facing);
+        boolean onWall = facing != EnumFacing.UP;
+        if (!placedBlock.canPlaceBlockAt(world, placePos))
+            return EnumActionResult.FAIL;
 
         int direction = 0;
         if (!onWall)
-            direction = IvMultiBlockHelper.getRotation(par2EntityPlayer);
+            direction = IvMultiBlockHelper.getRotation(player);
         else
         {
-            if (blockSide == 2)
+            if (facing == EnumFacing.NORTH)
                 direction = 0;
-            if (blockSide == 3)
+            if (facing == EnumFacing.SOUTH)
                 direction = 2;
-            if (blockSide == 4)
+            if (facing == EnumFacing.WEST)
                 direction = 3;
-            if (blockSide == 5)
+            if (facing == EnumFacing.EAST)
                 direction = 1;
         }
 
-        par3World.setBlock(x, y, z, block, onWall ? 1 : 0, 3);
+        world.setBlockState(placePos, placedBlock.getStateFromMeta(onWall ? 1 : 0), 3);
 
-        TileEntity tileEntity = par3World.getTileEntity(x, y, z);
+        TileEntity tileEntity = world.getTileEntity(placePos);
         if (tileEntity instanceof TileEntityWeaponRack)
         {
             ((TileEntityWeaponRack) tileEntity).direction = direction;
         }
 
-        par1ItemStack.stackSize--;
+        player.getHeldItem(hand).shrink(1);
 
-        return true;
+        return EnumActionResult.SUCCESS;
     }
 }
