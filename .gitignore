@@ -5,6 +5,8 @@
 !gradlew*
 !/gradle/
 !/build.gradle
+!/settings.gradle
+!/gradle.properties
 !/README.md
 !/.github/
 !/.github/workflows/
