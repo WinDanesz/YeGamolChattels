@@ -41,18 +41,6 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build --max-workers=1 --no-daemon
 
-      - name: Run unit tests
-        run: ./gradlew test --max-workers=1 --no-daemon
-
-      - name: Publish test report
-        uses: dorny/test-reporter@v3
-        if: always()
-        with:
-          name: Unit Tests
-          path: build/test-results/test/*.xml
-          reporter: java-junit
-          fail-on-error: false
-
       - name: Prepare Minecraft server for startup test
         run: |
           mkdir -p run
