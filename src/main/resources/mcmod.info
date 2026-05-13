@@ -11,6 +11,6 @@
   "credits": "${mod_credits}",
   "logoFile": "${mod_logo_path}",
   "screenshots": [],
-  "dependencies": ["required-after:ivtoolkit"]
+  "dependencies": []
 }
 ]

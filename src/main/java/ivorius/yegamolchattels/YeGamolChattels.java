@@ -34,8 +34,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import org.apache.logging.log4j.Logger;
 
 @Mod(modid = YeGamolChattels.MODID, version = YeGamolChattels.VERSION, name = YeGamolChattels.NAME, guiFactory = "ivorius.yegamolchattels.gui.YGCConfigGuiFactory",
-        acceptedMinecraftVersions = "1.12.2",
-        dependencies = "required-after:ivtoolkit")
+        acceptedMinecraftVersions = "1.12.2")
 public class YeGamolChattels
 {
     public static final String MODID = "yegamolchattels";
