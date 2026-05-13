@@ -16,9 +16,17 @@ public class YGCMaterials
 {
     public static Material mixed;
 
+    static
+    {
+        init();
+    }
+
     public static void init()
     {
-        mixed = new Material(MapColor.STONE);
-        YGCBlockAccessor.setImmovableMobility(mixed);
+        if (mixed == null)
+        {
+            mixed = new Material(MapColor.STONE);
+            YGCBlockAccessor.setImmovableMobility(mixed);
+        }
     }
 }
