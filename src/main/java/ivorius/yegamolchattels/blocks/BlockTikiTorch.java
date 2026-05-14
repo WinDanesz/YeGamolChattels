@@ -2,6 +2,7 @@ package ivorius.yegamolchattels.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockFence;
+import net.minecraft.block.BlockStairs;
 import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.properties.PropertyEnum;
@@ -75,6 +76,7 @@ public class BlockTikiTorch extends Block
                 || block instanceof BlockFence
                 || block == Blocks.NETHER_BRICK_FENCE
                 || block == Blocks.GLASS
+                || (block instanceof BlockStairs && state.getValue(BlockStairs.HALF) == BlockStairs.EnumHalf.TOP)
                 || (block == this && state.getValue(PART) == Part.LOWER);
     }
 

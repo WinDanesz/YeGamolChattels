@@ -42,6 +42,9 @@ public class ItemFlag extends Item
         ItemStack stack = player.getHeldItem(hand);
         BlockPos placePos = pos.up();
 
+        if (!player.canPlayerEdit(placePos, facing, stack))
+            return EnumActionResult.FAIL;
+
         EntityFlag entityflag = new EntityFlag(world);
         entityflag.setPosition(placePos.getX(), placePos.getY(), placePos.getZ());
         entityflag.setColor(stack.getMetadata());
@@ -50,8 +53,11 @@ public class ItemFlag extends Item
         if (entityflag.canStayAtPosition())
         {
             if (!world.isRemote)
+            {
                 world.spawnEntity(entityflag);
-            stack.shrink(1);
+                if (!player.capabilities.isCreativeMode)
+                    stack.shrink(1);
+            }
             return EnumActionResult.SUCCESS;
         }
 

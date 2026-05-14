@@ -26,6 +26,9 @@ public class RenderFlag extends Render<EntityFlag>
     @Override
     public void doRender(EntityFlag entity, double x, double y, double z, float entityYaw, float partialTicks)
     {
+        if (entity.world == null)
+            return;
+
         GlStateManager.pushMatrix();
         GlStateManager.translate(x + 0.5F, y, z + 0.5F);
         GlStateManager.rotate(entityYaw, 0.0F, 1.0F, 0.0F);
@@ -48,7 +51,7 @@ public class RenderFlag extends Render<EntityFlag>
         bindTexture(POLE_TEXTURE);
         for (int segmentY = 0; segmentY < sizeY; segmentY++)
         {
-            setLight(MathHelper.floor(entity.posX), MathHelper.floor(entity.posY) + segmentY, MathHelper.floor(entity.posZ));
+            setLight(entity, MathHelper.floor(entity.posX), MathHelper.floor(entity.posY) + segmentY, MathHelper.floor(entity.posZ));
 
             float texY0 = 1.0f - segmentY / sizeY;
             float texY1 = 1.0f - (segmentY + 1) / sizeY;
@@ -80,7 +83,7 @@ public class RenderFlag extends Render<EntityFlag>
         double folding = Math.max(0.0, 1.0 - wind * 4.0);
 
         bindTexture(CLOTH_TEXTURE);
-        setLight(MathHelper.floor(entity.posX), MathHelper.floor(entity.posY + sizeY), MathHelper.floor(entity.posZ));
+        setLight(entity, MathHelper.floor(entity.posX), MathHelper.floor(entity.posY + sizeY), MathHelper.floor(entity.posZ));
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
         for (int xSegment = 0; xSegment < segments; xSegment++)
         {
@@ -111,9 +114,9 @@ public class RenderFlag extends Render<EntityFlag>
         GlStateManager.popMatrix();
     }
 
-    private void setLight(int x, int y, int z)
+    private void setLight(EntityFlag entity, int x, int y, int z)
     {
-        int brightness = renderManager.world.getCombinedLight(new net.minecraft.util.math.BlockPos(x, y, z), 0);
+        int brightness = entity.world.getCombinedLight(new net.minecraft.util.math.BlockPos(x, y, z), 0);
         int sky = brightness % 65536;
         int block = brightness / 65536;
         OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, sky, block);

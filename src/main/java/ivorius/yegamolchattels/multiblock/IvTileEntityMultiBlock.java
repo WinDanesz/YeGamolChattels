@@ -2,8 +2,10 @@ package ivorius.yegamolchattels.multiblock;
 
 import ivorius.yegamolchattels.raytracing.IvRaytraceableAxisAlignedBox;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraftforge.common.util.Constants;
 
 public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITickable
 {
@@ -93,6 +95,35 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
     public void readFromNBT(NBTTagCompound tagCompound)
     {
         super.readFromNBT(tagCompound);
+        parentCoords = tagCompound.hasKey("parentCoords", Constants.NBT.TAG_INT_ARRAY) ? tagCompound.getIntArray("parentCoords") : null;
+        if (parentCoords != null && parentCoords.length != 3)
+            parentCoords = null;
+
+        if (tagCompound.hasKey("childCoords", Constants.NBT.TAG_LIST))
+        {
+            NBTTagList childList = tagCompound.getTagList("childCoords", Constants.NBT.TAG_COMPOUND);
+            childCoords = new int[childList.tagCount()][];
+            for (int i = 0; i < childList.tagCount(); i++)
+            {
+                int[] coords = childList.getCompoundTagAt(i).getIntArray("coords");
+                childCoords[i] = coords.length == 3 ? coords : new int[0];
+            }
+        }
+        else
+        {
+            childCoords = null;
+        }
+
+        centerCoords = new double[]{
+                tagCompound.getDouble("centerX"),
+                tagCompound.getDouble("centerY"),
+                tagCompound.getDouble("centerZ")
+        };
+        centerCoordsSize = new double[]{
+                tagCompound.getDouble("centerSizeX"),
+                tagCompound.getDouble("centerSizeY"),
+                tagCompound.getDouble("centerSizeZ")
+        };
         multiblockInvalid = tagCompound.getBoolean("multiblockInvalid");
     }
 
@@ -100,6 +131,30 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
     public NBTTagCompound writeToNBT(NBTTagCompound tagCompound)
     {
         super.writeToNBT(tagCompound);
+        if (parentCoords != null && parentCoords.length == 3)
+            tagCompound.setIntArray("parentCoords", parentCoords);
+
+        if (childCoords != null)
+        {
+            NBTTagList childList = new NBTTagList();
+            for (int[] childCoord : childCoords)
+            {
+                if (childCoord != null && childCoord.length == 3)
+                {
+                    NBTTagCompound childTag = new NBTTagCompound();
+                    childTag.setIntArray("coords", childCoord);
+                    childList.appendTag(childTag);
+                }
+            }
+            tagCompound.setTag("childCoords", childList);
+        }
+
+        tagCompound.setDouble("centerX", centerCoords[0]);
+        tagCompound.setDouble("centerY", centerCoords[1]);
+        tagCompound.setDouble("centerZ", centerCoords[2]);
+        tagCompound.setDouble("centerSizeX", centerCoordsSize[0]);
+        tagCompound.setDouble("centerSizeY", centerCoordsSize[1]);
+        tagCompound.setDouble("centerSizeZ", centerCoordsSize[2]);
         tagCompound.setBoolean("multiblockInvalid", multiblockInvalid);
         return tagCompound;
     }

@@ -42,8 +42,11 @@ public class ItemBanner extends Item
         if (banner.onValidSurface())
         {
             if (!world.isRemote)
+            {
                 world.spawnEntity(banner);
-            stack.shrink(1);
+                if (!player.capabilities.isCreativeMode)
+                    stack.shrink(1);
+            }
             return EnumActionResult.SUCCESS;
         }
 

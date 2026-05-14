@@ -4,6 +4,7 @@ import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.blocks.YGCBlocks;
 import ivorius.yegamolchattels.items.ItemEntityVita;
 import ivorius.yegamolchattels.items.YGCItems;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
 import net.minecraft.util.ResourceLocation;
@@ -37,8 +38,8 @@ public class YGCModelRegistrationHandler
 
         // Standalone items — looked up directly from the registry to avoid
         // @ObjectHolder injection-timing issues
-        registerFromRegistry("bannersmall",     "bannersmall");
-        registerFromRegistry("bannerlarge",     "bannerlarge");
+        registerSubtypedFromRegistry("bannerSmall", "bannersmall", 16);
+        registerSubtypedFromRegistry("bannerLarge", "bannerlarge", 16);
         registerSubtypedFromRegistry("flagSmall", "flagsmall", 16);
         registerSubtypedFromRegistry("flagLarge", "flaglarge", 16);
         registerFromRegistry("grindstonestone", "grindstonestone");
@@ -49,6 +50,11 @@ public class YGCModelRegistrationHandler
     @SubscribeEvent
     public static void onItemColors(ColorHandlerEvent.Item event)
     {
+        registerClothTint(event, YGCItems.bannerSmall);
+        registerClothTint(event, YGCItems.bannerLarge);
+        registerClothTint(event, YGCItems.flagSmall);
+        registerClothTint(event, YGCItems.flagLarge);
+
         if (YGCItems.entityVita != null)
         {
             event.getItemColors().registerItemColorHandler(
@@ -74,6 +80,16 @@ public class YGCModelRegistrationHandler
         if (item != null)
             ModelLoader.setCustomModelResourceLocation(item, 0,
                     new ModelResourceLocation(YeGamolChattels.MODID + ":" + modelName, "inventory"));
+    }
+
+    private static void registerClothTint(ColorHandlerEvent.Item event, Item item)
+    {
+        if (item == null)
+            return;
+
+        event.getItemColors().registerItemColorHandler(
+                (stack, tintIndex) -> tintIndex == 1 ? EnumDyeColor.byDyeDamage(stack.getMetadata()).getColorValue() : -1,
+                item);
     }
 
     private static void registerSubtypedFromRegistry(String registryName, String modelName, int variants)

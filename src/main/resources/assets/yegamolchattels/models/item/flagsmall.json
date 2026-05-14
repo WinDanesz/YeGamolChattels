@@ -1,6 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "yegamolchattels:items/flag_small_cloth"
+    "layer0": "yegamolchattels:items/flag_small_pole",
+    "layer1": "yegamolchattels:items/flag_small_cloth"
   }
 }

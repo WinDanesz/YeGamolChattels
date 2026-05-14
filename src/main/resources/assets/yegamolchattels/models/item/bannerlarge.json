@@ -1,6 +1,7 @@
 {
   "parent": "item/generated",
   "textures": {
-    "layer0": "yegamolchattels:items/banner_large_cloth"
+    "layer0": "yegamolchattels:items/banner_large_pole",
+    "layer1": "yegamolchattels:items/banner_large_cloth"
   }
 }

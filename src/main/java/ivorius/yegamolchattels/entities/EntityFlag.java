@@ -23,6 +23,8 @@ public class EntityFlag extends Entity
 {
     private static final DataParameter<Integer> FLAG_SIZE = EntityDataManager.createKey(EntityFlag.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> FLAG_COLOR = EntityDataManager.createKey(EntityFlag.class, DataSerializers.VARINT);
+    private int cachedFlagSize;
+    private int cachedFlagColor;
 
     public float wind = 0.0f;
     public float simWind = 0.0f;
@@ -37,8 +39,8 @@ public class EntityFlag extends Entity
     @Override
     protected void entityInit()
     {
-        dataManager.register(FLAG_SIZE, 0);
-        dataManager.register(FLAG_COLOR, 0);
+        dataManager.register(FLAG_SIZE, cachedFlagSize);
+        dataManager.register(FLAG_COLOR, cachedFlagColor);
     }
 
     public void updateBounds()
@@ -190,22 +192,26 @@ public class EntityFlag extends Entity
 
     public int getSize()
     {
-        return dataManager.get(FLAG_SIZE);
+        return dataManager != null ? dataManager.get(FLAG_SIZE) : cachedFlagSize;
     }
 
     public void setSize(int size)
     {
-        dataManager.set(FLAG_SIZE, size);
+        cachedFlagSize = size;
+        if (dataManager != null)
+            dataManager.set(FLAG_SIZE, size);
         updateBounds();
     }
 
     public int getColor()
     {
-        return dataManager.get(FLAG_COLOR);
+        return dataManager != null ? dataManager.get(FLAG_COLOR) : cachedFlagColor;
     }
 
     public void setColor(int color)
     {
-        dataManager.set(FLAG_COLOR, color);
+        cachedFlagColor = color;
+        if (dataManager != null)
+            dataManager.set(FLAG_COLOR, color);
     }
 }
