@@ -40,6 +40,17 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
     public int gongType;
     public int madnessTimer = -1;
 
+    public int getGongSize()
+    {
+        if (worldObj != null && pos != null)
+        {
+            net.minecraft.block.Block b = worldObj.getBlockState(pos).getBlock();
+            if (b instanceof BlockGong)
+                return ((BlockGong) b).gongSize;
+        }
+        return 0;
+    }
+
     @Override
     public void updateEntityParent()
     {
@@ -83,7 +94,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
 
                 if (worldObj.rand.nextInt(madnessTimer / 10 + 5) == 0)
                 {
-                    hitGong(new ItemStack(YGCItems.mallet), worldObj.rand.nextFloat() * this.getBlockMetadata());
+                    hitGong(new ItemStack(YGCItems.mallet), worldObj.rand.nextFloat() * this.getGongSize());
                 }
             }
             else
@@ -94,7 +105,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
                     float offsetY = worldObj.rand.nextFloat() * 10.0f - 5.0f;
                     float offsetZ = worldObj.rand.nextFloat() * 10.0f - 5.0f;
 
-                    int gongSize = getBlockMetadata();
+                    int gongSize = getGongSize();
 
                     double[] center = getActiveCenterCoords();
                     double startX = center[0] + worldObj.rand.nextFloat() * gongSize - gongSize * 0.5f;
@@ -125,7 +136,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
             {
                 if (isValidHitItem(stack))
                 {
-                    switch (getBlockMetadata())
+                    switch (getGongSize())
                     {
                         case 0:
                             YGCAchievementList.trigger((EntityPlayer) entity, YGCAchievementList.smallGongPlayed);
@@ -161,7 +172,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
         }
         else
         {
-            int gongSize = getBlockMetadata();
+            int gongSize = getGongSize();
 
             String sound = YeGamolChattels.soundBase + "gong";
             if (this.madnessTimer > 0)
@@ -215,7 +226,7 @@ public class TileEntityGong extends IvTileEntityMultiBlock implements PartialUpd
     {
         ArrayList<IvRaytraceableObject> raytraceables = new ArrayList<>();
 
-        double gSize = getBlockMetadata() + 1;
+        double gSize = getGongSize() + 1;
         int steps = MathHelper.ceil(20 * gSize);
 
         for (int i = 0; i < steps; i++)

@@ -27,7 +27,9 @@ public class YGCModelRegistrationHandler
         registerFromBlock(YGCBlocks.grandfather_clock, "grandfather_clock");
         registerFromBlock(YGCBlocks.weapon_rack,       "weapon_rack");
         registerFromBlock(YGCBlocks.grindstone,        "grindstone");
-        registerFromBlock(YGCBlocks.gong,              "gong");
+        registerFromBlock(YGCBlocks.gong_small,       "gong_small");
+        registerFromBlock(YGCBlocks.gong_medium,      "gong_medium");
+        registerFromBlock(YGCBlocks.gong_large,       "gong_large");
         registerFromBlock(YGCBlocks.pedestal,          "pedestal");
 
         // Standalone items — looked up directly from the registry to avoid

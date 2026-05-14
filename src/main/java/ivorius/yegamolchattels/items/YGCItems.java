@@ -69,7 +69,9 @@ public final class YGCItems
         registerItemBlock(registry, YGCBlocks.weapon_rack, new ItemWeaponRack(YGCBlocks.weapon_rack));
         registerItemBlock(registry, YGCBlocks.grindstone, new ItemGrindstone(YGCBlocks.grindstone));
         registerItem(registry, "grindstoneStone", "grindstoneStone", new ItemGrindstoneStone(), YGCCreativeTabs.tabMain);
-        registerItemBlock(registry, YGCBlocks.gong, new ItemGong(YGCBlocks.gong));
+        registerItemBlock(registry, YGCBlocks.gong_small,  new ItemGong(YGCBlocks.gong_small));
+        registerItemBlock(registry, YGCBlocks.gong_medium, new ItemGong(YGCBlocks.gong_medium));
+        registerItemBlock(registry, YGCBlocks.gong_large,  new ItemGong(YGCBlocks.gong_large));
         Item malletItem = new Item().setMaxStackSize(1);
         registerItem(registry, "mallet", "mallet", malletItem, YGCCreativeTabs.tabMain);
         registerItemBlock(registry, YGCBlocks.pedestal, new ItemPedestal(YGCBlocks.pedestal));

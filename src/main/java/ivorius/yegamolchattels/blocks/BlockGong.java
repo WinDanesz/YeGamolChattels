@@ -15,16 +15,19 @@ import net.minecraft.world.World;
 
 public class BlockGong extends IvBlockMultiblock
 {
-    public BlockGong(Material material)
+    public final int gongSize;
+
+    public BlockGong(Material material, int gongSize)
     {
         super(material);
+        this.gongSize = gongSize;
         setCreativeTab(YGCCreativeTabs.tabMain);
     }
 
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return EnumBlockRenderType.MODEL;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override

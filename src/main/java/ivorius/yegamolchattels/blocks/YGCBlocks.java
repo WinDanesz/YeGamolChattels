@@ -26,7 +26,9 @@ public final class YGCBlocks
     public static final Block grandfather_clock = placeholder();
     public static final Block weapon_rack = placeholder();
     public static final Block grindstone = placeholder();
-    public static final Block gong = placeholder();
+    public static final Block gong_small = placeholder();
+    public static final Block gong_medium = placeholder();
+    public static final Block gong_large = placeholder();
     public static final Block pedestal = placeholder();
     public static final Block item_shelf = placeholder();
     public static final Block snow_globe = placeholder();
@@ -62,7 +64,9 @@ public final class YGCBlocks
         registerBlock(registry, "grandfather_clock", "grandfatherClock", new BlockGrandfatherClock(Material.WOOD).setHardness(1.5F), true);
         registerBlock(registry, "weapon_rack", "weaponRack", new BlockWeaponRack(Material.WOOD).setHardness(1.5F), true);
         registerBlock(registry, "grindstone", "grindstone", new BlockGrindstone(Material.WOOD).setHardness(1.5F), true);
-        registerBlock(registry, "gong", "gong", new BlockGong(Material.IRON).setHardness(1.5F), true);
+        registerBlock(registry, "gong_small",  "gong.size0", new BlockGong(Material.IRON, 0).setHardness(1.5F), true);
+        registerBlock(registry, "gong_medium", "gong.size1", new BlockGong(Material.IRON, 1).setHardness(1.5F), true);
+        registerBlock(registry, "gong_large",  "gong.size2", new BlockGong(Material.IRON, 2).setHardness(1.5F), true);
         registerBlock(registry, "pedestal", "pedestal", new BlockPedestal().setHardness(1.5F), true);
         registerBlock(registry, "item_shelf", "ygcItemShelf", new BlockItemShelf(Material.WOOD).setHardness(1.5F), true);
         registerBlock(registry, "snow_globe", "ygcSnowGlobe", new BlockSnowGlobe(), true);
