@@ -14,7 +14,7 @@ package ivorius.yegamolchattels.client.rendering;
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.entity.Entity;
-import net.minecraft.util.MathHelper;
+import net.minecraft.util.math.MathHelper;
 
 public class ModelGrandfatherClock extends ModelBase
 {
@@ -264,6 +264,46 @@ public class ModelGrandfatherClock extends ModelBase
         phase.render(f5);
         arm.render(f5);
         armconnect.render(f5);
+    }
+
+    /** Called from TileEntityRendererGrandfatherClock — bypasses the Entity-based animation path. */
+    public void renderForTESR(long clockTime, long pendulumTime, float scale)
+    {
+        pendulum1.rotateAngleZ = MathHelper.sin(pendulumTime / 400.0f * (float) Math.PI) * 0.3141f;
+        pendulum2.rotateAngleZ = pendulum1.rotateAngleZ;
+        arm.rotateAngleZ = ((clockTime - 6000L) / 24000f) * (float) Math.PI * 2.0f;
+        float moonPhase = (clockTime / 24000f) % 8.0f;
+        phase.rotateAngleY = (float) Math.PI * (-0.13f + 0.26f * moonPhase / 9.0f);
+
+        base.render(scale);
+        basepilar1.render(scale);
+        basepilar2.render(scale);
+        basepilar3.render(scale);
+        basepilar4.render(scale);
+        pole1.render(scale);
+        pole2.render(scale);
+        pole3.render(scale);
+        pole4.render(scale);
+        frontdetail1.render(scale);
+        backdetail1.render(scale);
+        frontdetail2.render(scale);
+        frontdetail3.render(scale);
+        backdetail2.render(scale);
+        backdetail3.render(scale);
+        frontdetail4.render(scale);
+        frontdetail5.render(scale);
+        backdetail4.render(scale);
+        backdetail5.render(scale);
+        right.render(scale);
+        left.render(scale);
+        clock.render(scale);
+        clocktop.render(scale);
+        clockbottom.render(scale);
+        pendulum1.render(scale);
+        pendulum2.render(scale);
+        phase.render(scale);
+        arm.render(scale);
+        armconnect.render(scale);
     }
 
     private void setRotation(ModelRenderer model, float x, float y, float z)

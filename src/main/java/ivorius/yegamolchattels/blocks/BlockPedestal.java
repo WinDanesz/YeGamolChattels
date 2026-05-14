@@ -34,7 +34,7 @@ public class BlockPedestal extends IvBlockMultiblock
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return EnumBlockRenderType.INVISIBLE;
+        return EnumBlockRenderType.MODEL;
     }
 
     @Override
