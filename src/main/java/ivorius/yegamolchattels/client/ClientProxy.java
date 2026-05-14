@@ -3,9 +3,11 @@ package ivorius.yegamolchattels.client;
 import ivorius.yegamolchattels.YGCProxy;
 import ivorius.yegamolchattels.blocks.*;
 import ivorius.yegamolchattels.client.rendering.*;
+import ivorius.yegamolchattels.entities.EntityFlag;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
+import net.minecraftforge.fml.client.registry.RenderingRegistry;
 
 public class ClientProxy implements YGCProxy
 {
@@ -17,6 +19,8 @@ public class ClientProxy implements YGCProxy
     @Override
     public void registerRenderers()
     {
+        RenderingRegistry.registerEntityRenderingHandler(EntityFlag.class, RenderFlag::new);
+
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStatue.class,          new TileEntityRendererStatue());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityGrandfatherClock.class, new TileEntityRendererGrandfatherClock());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityWeaponRack.class,      new TileEntityRendererWeaponRack());

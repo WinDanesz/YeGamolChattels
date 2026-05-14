@@ -4,6 +4,9 @@ import ivorius.yegamolchattels.items.YGCItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemStack;
@@ -18,8 +21,8 @@ import java.util.List;
 
 public class EntityFlag extends Entity
 {
-    private int flagSize;
-    private int flagColor;
+    private static final DataParameter<Integer> FLAG_SIZE = EntityDataManager.createKey(EntityFlag.class, DataSerializers.VARINT);
+    private static final DataParameter<Integer> FLAG_COLOR = EntityDataManager.createKey(EntityFlag.class, DataSerializers.VARINT);
 
     public float wind = 0.0f;
     public float simWind = 0.0f;
@@ -34,6 +37,8 @@ public class EntityFlag extends Entity
     @Override
     protected void entityInit()
     {
+        dataManager.register(FLAG_SIZE, 0);
+        dataManager.register(FLAG_COLOR, 0);
     }
 
     public void updateBounds()
@@ -128,8 +133,8 @@ public class EntityFlag extends Entity
     protected void readEntityFromNBT(NBTTagCompound tag)
     {
         setPosition(tag.getInteger("TileX"), tag.getInteger("TileY"), tag.getInteger("TileZ"));
-        flagSize = tag.getInteger("FlagSize");
-        flagColor = tag.getInteger("FlagColor");
+        setSize(tag.getInteger("FlagSize"));
+        setColor(tag.getInteger("FlagColor"));
         updateBounds();
     }
 
@@ -139,8 +144,8 @@ public class EntityFlag extends Entity
         tag.setInteger("TileX", MathHelper.floor(posX));
         tag.setInteger("TileY", MathHelper.floor(posY));
         tag.setInteger("TileZ", MathHelper.floor(posZ));
-        tag.setInteger("FlagSize", flagSize);
-        tag.setInteger("FlagColor", flagColor);
+        tag.setInteger("FlagSize", getSize());
+        tag.setInteger("FlagColor", getColor());
     }
 
     @Override
@@ -169,9 +174,9 @@ public class EntityFlag extends Entity
 
     public int getFlagHeight()
     {
-        if (flagSize == 0)
+        if (getSize() == 0)
             return 32;
-        if (flagSize == 2)
+        if (getSize() == 2)
             return 128;
 
         return 96;
@@ -179,28 +184,28 @@ public class EntityFlag extends Entity
 
     public void dropFlag()
     {
-        ItemStack drop = new ItemStack(flagSize == 2 ? YGCItems.flagLarge : YGCItems.flagSmall, 1, flagColor);
+        ItemStack drop = new ItemStack(getSize() == 2 ? YGCItems.flagLarge : YGCItems.flagSmall, 1, getColor());
         world.spawnEntity(new EntityItem(world, posX, posY, posZ, drop));
     }
 
     public int getSize()
     {
-        return flagSize;
+        return dataManager.get(FLAG_SIZE);
     }
 
     public void setSize(int size)
     {
-        flagSize = size;
+        dataManager.set(FLAG_SIZE, size);
         updateBounds();
     }
 
     public int getColor()
     {
-        return flagColor;
+        return dataManager.get(FLAG_COLOR);
     }
 
     public void setColor(int color)
     {
-        flagColor = color;
+        dataManager.set(FLAG_COLOR, color);
     }
 }
