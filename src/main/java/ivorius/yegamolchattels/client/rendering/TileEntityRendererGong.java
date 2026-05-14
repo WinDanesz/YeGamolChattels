@@ -2,6 +2,7 @@ package ivorius.yegamolchattels.client.rendering;
 
 import ivorius.yegamolchattels.blocks.BlockGong;
 import ivorius.yegamolchattels.blocks.TileEntityGong;
+import ivorius.yegamolchattels.multiblock.IvMultiBlockRenderHelper;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
@@ -20,6 +21,9 @@ public class TileEntityRendererGong extends TileEntitySpecialRenderer<TileEntity
     @Override
     public void render(TileEntityGong te, double x, double y, double z, float partialTicks, int destroyStage, float alpha)
     {
+        if (!te.isParent())
+            return;
+
         int size = 0;
         if (te.getWorld() != null && te.getPos() != null)
         {
@@ -29,9 +33,17 @@ public class TileEntityRendererGong extends TileEntitySpecialRenderer<TileEntity
         }
 
         GlStateManager.pushMatrix();
-        GlStateManager.translate(x + 0.5, y + 1.5, z + 0.5);
-        GlStateManager.scale(1.0f, -1.0f, -1.0f);
-        GlStateManager.rotate(te.direction * 90.0f, 0.0f, 1.0f, 0.0f);
+        IvMultiBlockRenderHelper.transformFor(te, x, y, z);
+        GlStateManager.rotate(180.0f, 1.0f, 0.0f, 0.0f);
+
+        if (te.getWorld() != null && te.vibrationStrength > 0)
+        {
+            double vibrationScale = 0.00005 * te.vibrationStrength;
+            double vibX = (te.getWorld().rand.nextDouble() - 0.5) * vibrationScale;
+            double vibY = (te.getWorld().rand.nextDouble() - 0.5) * vibrationScale;
+            double vibZ = (te.getWorld().rand.nextDouble() - 0.5) * vibrationScale;
+            GlStateManager.translate(vibX, vibY, vibZ);
+        }
 
         final float scale = 0.0625f;
         switch (size)
@@ -42,10 +54,12 @@ public class TileEntityRendererGong extends TileEntitySpecialRenderer<TileEntity
                 break;
             case 1:
                 bindTexture(TEX_MEDIUM);
+                GlStateManager.translate(-0.5f, -0.5f, 0.0f);
                 renderMedium(scale);
                 break;
             default:
                 bindTexture(TEX_SMALL);
+                GlStateManager.translate(0.0f, -1.0f, 0.0f);
                 renderSmall(scale);
                 break;
         }
