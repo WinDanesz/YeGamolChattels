@@ -83,10 +83,10 @@ public class BlockTikiTorch extends Block
     @Override
     public boolean canPlaceBlockAt(World world, BlockPos pos)
     {
-        return pos.getY() < world.getHeight() - 1
+        return pos.getY() < world.getHeight() - 2
                 && canPlaceTorchOn(world, pos.down())
                 && super.canPlaceBlockAt(world, pos)
-                && world.mayPlace(this, pos.up(), false, EnumFacing.UP, null);
+                && super.canPlaceBlockAt(world, pos.up());
     }
 
     @Override

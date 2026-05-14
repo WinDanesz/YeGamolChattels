@@ -1,6 +1,33 @@
 {
-  "parent": "block/cube_all",
   "textures": {
-    "all": "yegamolchattels:blocks/tiki_torch_upper"
-  }
+    "particle": "yegamolchattels:blocks/tiki_torch_upper",
+    "pole": "yegamolchattels:blocks/tiki_torch",
+    "head": "yegamolchattels:blocks/tiki_torch_upper"
+  },
+  "elements": [
+    {
+      "from": [7, 0, 7],
+      "to": [9, 10, 9],
+      "faces": {
+        "down": { "texture": "#pole", "uv": [7, 7, 9, 9] },
+        "up": { "texture": "#pole", "uv": [7, 7, 9, 9] },
+        "north": { "texture": "#pole", "uv": [7, 0, 9, 10] },
+        "south": { "texture": "#pole", "uv": [7, 0, 9, 10] },
+        "west": { "texture": "#pole", "uv": [7, 0, 9, 10] },
+        "east": { "texture": "#pole", "uv": [7, 0, 9, 10] }
+      }
+    },
+    {
+      "from": [5, 10, 5],
+      "to": [11, 14, 11],
+      "faces": {
+        "down": { "texture": "#head", "uv": [5, 5, 11, 11] },
+        "up": { "texture": "#head", "uv": [5, 5, 11, 11] },
+        "north": { "texture": "#head", "uv": [5, 2, 11, 6] },
+        "south": { "texture": "#head", "uv": [5, 2, 11, 6] },
+        "west": { "texture": "#head", "uv": [5, 2, 11, 6] },
+        "east": { "texture": "#head", "uv": [5, 2, 11, 6] }
+      }
+    }
+  ]
 }

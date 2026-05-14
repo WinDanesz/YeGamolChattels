@@ -84,6 +84,7 @@ public class RenderFlag extends Render<EntityFlag>
 
         bindTexture(CLOTH_TEXTURE);
         setLight(entity, MathHelper.floor(entity.posX), MathHelper.floor(entity.posY + sizeY), MathHelper.floor(entity.posZ));
+        GlStateManager.disableCull();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
         for (int xSegment = 0; xSegment < segments; xSegment++)
         {
@@ -111,6 +112,7 @@ public class RenderFlag extends Render<EntityFlag>
             }
         }
         tessellator.draw();
+        GlStateManager.enableCull();
         GlStateManager.popMatrix();
     }
 

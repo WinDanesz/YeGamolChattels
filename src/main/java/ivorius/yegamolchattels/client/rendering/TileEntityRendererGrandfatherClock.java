@@ -17,8 +17,13 @@ public class TileEntityRendererGrandfatherClock extends TileEntitySpecialRendere
     public void render(TileEntityGrandfatherClock te, double x, double y, double z,
                        float partialTicks, int destroyStage, float alpha)
     {
+        int meta = te.getBlockMetadata();
+        if ((meta & 1) != 0)
+            return;
+
         GlStateManager.pushMatrix();
         GlStateManager.translate((float) x + 0.5f, (float) y + 1.5f, (float) z + 0.5f);
+        GlStateManager.rotate(-90.0f * (meta >> 1) + 180.0f, 0.0f, 1.0f, 0.0f);
         GlStateManager.scale(1.0f, -1.0f, -1.0f);
         bindTexture(TEXTURE);
         model.renderForTESR(te.clockTimeShown, te.pendulumTimeShown, 0.0625f);

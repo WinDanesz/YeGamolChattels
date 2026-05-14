@@ -1,5 +1,6 @@
 package ivorius.yegamolchattels.entities;
 
+import io.netty.buffer.ByteBuf;
 import ivorius.yegamolchattels.items.YGCItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
@@ -16,10 +17,11 @@ import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
 import java.util.List;
 
-public class EntityFlag extends Entity
+public class EntityFlag extends Entity implements IEntityAdditionalSpawnData
 {
     private static final DataParameter<Integer> FLAG_SIZE = EntityDataManager.createKey(EntityFlag.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> FLAG_COLOR = EntityDataManager.createKey(EntityFlag.class, DataSerializers.VARINT);
@@ -213,5 +215,20 @@ public class EntityFlag extends Entity
         cachedFlagColor = color;
         if (dataManager != null)
             dataManager.set(FLAG_COLOR, color);
+    }
+
+    @Override
+    public void writeSpawnData(ByteBuf buffer)
+    {
+        buffer.writeInt(getSize());
+        buffer.writeInt(getColor());
+    }
+
+    @Override
+    public void readSpawnData(ByteBuf additionalData)
+    {
+        setSize(additionalData.readInt());
+        setColor(additionalData.readInt());
+        updateBounds();
     }
 }

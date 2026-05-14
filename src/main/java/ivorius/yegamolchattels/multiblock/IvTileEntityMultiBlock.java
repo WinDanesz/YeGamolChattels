@@ -5,6 +5,7 @@ import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.ITickable;
 import net.minecraft.util.math.AxisAlignedBB;
+import net.minecraft.util.math.BlockPos;
 import net.minecraftforge.common.util.Constants;
 
 public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITickable
@@ -49,13 +50,21 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
 
     public void becomeParent(java.util.List<int[]> childPositions)
     {
-        if (childPositions == null)
+        if (childPositions != null)
+        {
+            this.childCoords = new int[childPositions.size()][3];
+            for (int i = 0; i < childPositions.size(); i++)
+            {
+                int[] location = childPositions.get(i);
+                this.childCoords[i][0] = location[0] - pos.getX();
+                this.childCoords[i][1] = location[1] - pos.getY();
+                this.childCoords[i][2] = location[2] - pos.getZ();
+            }
+        }
+        else
         {
             this.childCoords = new int[0][];
-            return;
         }
-
-        this.childCoords = childPositions.toArray(new int[childPositions.size()][]);
     }
 
     public boolean isParent()
@@ -89,6 +98,117 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
 
     public void updateEntityParent()
     {
+        if (world == null)
+            return;
+
+        if (parentCoords != null)
+        {
+            if (getParent() == null)
+            {
+                IvTileEntityMultiBlock recoveredParent = findRecoveredParent();
+                if (recoveredParent != null)
+                {
+                    becomeChild(recoveredParent);
+                    markDirty();
+                }
+            }
+        }
+        else if ((childCoords == null || childCoords.length == 0) && hasSiblingPieces())
+        {
+            IvTileEntityMultiBlock recoveredParent = findRecoveredParent();
+            if (recoveredParent != null)
+            {
+                becomeChild(recoveredParent);
+                markDirty();
+            }
+        }
+    }
+
+    private IvTileEntityMultiBlock findRecoveredParent()
+    {
+        if (world == null || pos == null)
+            return null;
+
+        double[] center = getActiveCenterCoords();
+        int minX = (int) Math.floor(center[0] - centerCoordsSize[0]);
+        int minY = (int) Math.floor(center[1] - centerCoordsSize[1]);
+        int minZ = (int) Math.floor(center[2] - centerCoordsSize[2]);
+        int maxX = (int) Math.ceil(center[0] + centerCoordsSize[0]);
+        int maxY = (int) Math.ceil(center[1] + centerCoordsSize[1]);
+        int maxZ = (int) Math.ceil(center[2] + centerCoordsSize[2]);
+
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int z = minZ; z <= maxZ; z++)
+                {
+                    if (x == pos.getX() && y == pos.getY() && z == pos.getZ())
+                        continue;
+
+                    net.minecraft.tileentity.TileEntity tileEntity = world.getTileEntity(new BlockPos(x, y, z));
+                    if (!getClass().isInstance(tileEntity))
+                        continue;
+
+                    IvTileEntityMultiBlock candidate = (IvTileEntityMultiBlock) tileEntity;
+                    if (candidate.referencesChild(pos))
+                        return candidate;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean hasSiblingPieces()
+    {
+        if (world == null || pos == null)
+            return false;
+
+        double[] center = getActiveCenterCoords();
+        int minX = (int) Math.floor(center[0] - centerCoordsSize[0]);
+        int minY = (int) Math.floor(center[1] - centerCoordsSize[1]);
+        int minZ = (int) Math.floor(center[2] - centerCoordsSize[2]);
+        int maxX = (int) Math.ceil(center[0] + centerCoordsSize[0]);
+        int maxY = (int) Math.ceil(center[1] + centerCoordsSize[1]);
+        int maxZ = (int) Math.ceil(center[2] + centerCoordsSize[2]);
+
+        for (int x = minX; x <= maxX; x++)
+        {
+            for (int y = minY; y <= maxY; y++)
+            {
+                for (int z = minZ; z <= maxZ; z++)
+                {
+                    if (x == pos.getX() && y == pos.getY() && z == pos.getZ())
+                        continue;
+
+                    net.minecraft.tileentity.TileEntity tileEntity = world.getTileEntity(new BlockPos(x, y, z));
+                    if (getClass().isInstance(tileEntity))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean referencesChild(BlockPos childPos)
+    {
+        if (childCoords == null)
+            return false;
+
+        for (int[] childCoord : childCoords)
+        {
+            if (childCoord == null || childCoord.length != 3)
+                continue;
+
+            if (pos.getX() + childCoord[0] == childPos.getX()
+                    && pos.getY() + childCoord[1] == childPos.getY()
+                    && pos.getZ() + childCoord[2] == childPos.getZ())
+                return true;
+        }
+
+        return false;
     }
 
     @Override
@@ -99,7 +219,18 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
         if (parentCoords != null && parentCoords.length != 3)
             parentCoords = null;
 
-        if (tagCompound.hasKey("childCoords", Constants.NBT.TAG_LIST))
+        if (tagCompound.hasKey("childCoords", Constants.NBT.TAG_INT_ARRAY))
+        {
+            int[] childCoordsFlat = tagCompound.getIntArray("childCoords");
+            childCoords = new int[childCoordsFlat.length / 3][3];
+            for (int i = 0; i < childCoords.length; i++)
+            {
+                childCoords[i][0] = childCoordsFlat[i * 3];
+                childCoords[i][1] = childCoordsFlat[i * 3 + 1];
+                childCoords[i][2] = childCoordsFlat[i * 3 + 2];
+            }
+        }
+        else if (tagCompound.hasKey("childCoords", Constants.NBT.TAG_LIST))
         {
             NBTTagList childList = tagCompound.getTagList("childCoords", Constants.NBT.TAG_COMPOUND);
             childCoords = new int[childList.tagCount()][];
@@ -108,6 +239,10 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
                 int[] coords = childList.getCompoundTagAt(i).getIntArray("coords");
                 childCoords[i] = coords.length == 3 ? coords : new int[0];
             }
+        }
+        else if (parentCoords == null)
+        {
+            childCoords = new int[0][];
         }
         else
         {
@@ -136,17 +271,14 @@ public class IvTileEntityMultiBlock extends IvTileEntityRotatable implements ITi
 
         if (childCoords != null)
         {
-            NBTTagList childList = new NBTTagList();
-            for (int[] childCoord : childCoords)
+            int[] childCoordsFlat = new int[childCoords.length * 3];
+            for (int i = 0; i < childCoords.length; i++)
             {
-                if (childCoord != null && childCoord.length == 3)
-                {
-                    NBTTagCompound childTag = new NBTTagCompound();
-                    childTag.setIntArray("coords", childCoord);
-                    childList.appendTag(childTag);
-                }
+                childCoordsFlat[i * 3] = childCoords[i][0];
+                childCoordsFlat[i * 3 + 1] = childCoords[i][1];
+                childCoordsFlat[i * 3 + 2] = childCoords[i][2];
             }
-            tagCompound.setTag("childCoords", childList);
+            tagCompound.setIntArray("childCoords", childCoordsFlat);
         }
 
         tagCompound.setDouble("centerX", centerCoords[0]);

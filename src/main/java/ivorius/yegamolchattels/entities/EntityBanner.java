@@ -1,6 +1,8 @@
 package ivorius.yegamolchattels.entities;
 
 import ivorius.yegamolchattels.items.YGCItems;
+import net.minecraft.block.BlockRedstoneDiode;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityHanging;
 import net.minecraft.entity.item.EntityItem;
@@ -111,25 +113,23 @@ public class EntityBanner extends EntityHanging
 
         int widthBlocks = Math.max(1, getWidthPixels() / 16);
         int heightBlocks = Math.max(1, getHeightPixels() / 16);
-        int offsetX = facingDirection == EnumFacing.NORTH || facingDirection == EnumFacing.SOUTH
-                ? MathHelper.floor(posX - getWidthPixels() / 32.0F)
-                : hangingPosition.getX();
-        int offsetY = MathHelper.floor(posY - getHeightPixels() / 32.0F);
-        int offsetZ = facingDirection == EnumFacing.EAST || facingDirection == EnumFacing.WEST
-                ? MathHelper.floor(posZ - getWidthPixels() / 32.0F)
-                : hangingPosition.getZ();
+        BlockPos anchor = hangingPosition.offset(facingDirection.getOpposite());
+        EnumFacing lateral = facingDirection.rotateYCCW();
+        BlockPos.MutableBlockPos checkPos = new BlockPos.MutableBlockPos();
+        int lateralOffset = (widthBlocks - 1) / -2;
+        int topRowOffset = heightBlocks - 1 + (heightBlocks - 1) / -2;
 
         for (int x = 0; x < widthBlocks; x++)
         {
-            for (int y = heightBlocks - 1; y < heightBlocks; y++)
-            {
-                Material material = (facingDirection == EnumFacing.NORTH || facingDirection == EnumFacing.SOUTH)
-                        ? world.getBlockState(new BlockPos(offsetX + x, offsetY + y, hangingPosition.getZ())).getMaterial()
-                        : world.getBlockState(new BlockPos(hangingPosition.getX(), offsetY + y, offsetZ + x)).getMaterial();
+            checkPos.setPos(anchor).move(lateral, x + lateralOffset).move(EnumFacing.UP, topRowOffset);
+            IBlockState state = world.getBlockState(checkPos);
 
-                if (!material.isSolid())
+            if (!state.isSideSolid(world, checkPos, facingDirection))
+            {
+                Material material = state.getMaterial();
+                if (!material.isSolid() && !BlockRedstoneDiode.isDiode(state))
                     return false;
-            }
+            }            
         }
 
         List<Entity> entities = world.getEntitiesWithinAABBExcludingEntity(this, getEntityBoundingBox());

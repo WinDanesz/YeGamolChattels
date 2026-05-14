@@ -34,7 +34,7 @@ public class YGCModelRegistrationHandler
         registerFromBlock(YGCBlocks.gong_small,       "gong_small");
         registerFromBlock(YGCBlocks.gong_medium,      "gong_medium");
         registerFromBlock(YGCBlocks.gong_large,       "gong_large");
-        registerFromBlock(YGCBlocks.pedestal,          "pedestal");
+        registerSubtypedFromBlock(YGCBlocks.pedestal,  "pedestal_", 5);
 
         // Standalone items — looked up directly from the registry to avoid
         // @ObjectHolder injection-timing issues
@@ -72,6 +72,22 @@ public class YGCModelRegistrationHandler
         if (item != null)
             ModelLoader.setCustomModelResourceLocation(item, 0,
                     new ModelResourceLocation(YeGamolChattels.MODID + ":" + modelName, "inventory"));
+    }
+
+    private static void registerSubtypedFromBlock(net.minecraft.block.Block block, String modelPrefix, int variants)
+    {
+        if (block == null)
+            return;
+
+        Item item = Item.getItemFromBlock(block);
+        if (item == null)
+            return;
+
+        for (int meta = 0; meta < variants; meta++)
+        {
+            ModelLoader.setCustomModelResourceLocation(item, meta,
+                    new ModelResourceLocation(YeGamolChattels.MODID + ":" + modelPrefix + meta, "inventory"));
+        }
     }
 
     private static void registerFromRegistry(String registryName, String modelName)

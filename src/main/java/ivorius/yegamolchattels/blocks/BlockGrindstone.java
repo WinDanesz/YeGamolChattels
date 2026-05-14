@@ -2,6 +2,8 @@ package ivorius.yegamolchattels.blocks;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
+import net.minecraft.block.properties.PropertyInteger;
+import net.minecraft.block.state.BlockStateContainer;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.tileentity.TileEntity;
@@ -13,15 +15,18 @@ import net.minecraft.world.World;
 
 public class BlockGrindstone extends Block
 {
+    public static final PropertyInteger ROTATION = PropertyInteger.create("rotation", 0, 3);
+
     public BlockGrindstone(Material material)
     {
         super(material);
+        setDefaultState(blockState.getBaseState().withProperty(ROTATION, 0));
     }
 
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return EnumBlockRenderType.MODEL;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override
@@ -46,6 +51,24 @@ public class BlockGrindstone extends Block
     public TileEntity createTileEntity(World world, IBlockState state)
     {
         return new TileEntityGrindstone();
+    }
+
+    @Override
+    public int getMetaFromState(IBlockState state)
+    {
+        return state.getValue(ROTATION);
+    }
+
+    @Override
+    public IBlockState getStateFromMeta(int meta)
+    {
+        return getDefaultState().withProperty(ROTATION, meta & 3);
+    }
+
+    @Override
+    protected BlockStateContainer createBlockState()
+    {
+        return new BlockStateContainer(this, ROTATION);
     }
 
     @Override

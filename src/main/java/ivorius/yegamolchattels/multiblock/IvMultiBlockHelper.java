@@ -69,7 +69,9 @@ public class IvMultiBlockHelper implements Iterable<int[]>
             if (parent)
             {
                 parentTileEntity = multiblock;
-                parentTileEntity.becomeParent(placements);
+                List<int[]> childLocations = new ArrayList<>(placements);
+                childLocations.removeIf(location -> location[0] == position[0] && location[1] == position[1] && location[2] == position[2]);
+                parentTileEntity.becomeParent(childLocations);
             }
             else
                 multiblock.becomeChild(parentTileEntity);

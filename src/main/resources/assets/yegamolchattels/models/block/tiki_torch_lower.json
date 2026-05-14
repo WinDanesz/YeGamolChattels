@@ -1,6 +1,20 @@
 {
-  "parent": "block/cube_all",
   "textures": {
-    "all": "yegamolchattels:blocks/tiki_torch"
-  }
+    "particle": "yegamolchattels:blocks/tiki_torch",
+    "pole": "yegamolchattels:blocks/tiki_torch"
+  },
+  "elements": [
+    {
+      "from": [7, 0, 7],
+      "to": [9, 16, 9],
+      "faces": {
+        "down": { "texture": "#pole", "uv": [7, 7, 9, 9] },
+        "up": { "texture": "#pole", "uv": [7, 7, 9, 9] },
+        "north": { "texture": "#pole", "uv": [7, 0, 9, 16] },
+        "south": { "texture": "#pole", "uv": [7, 0, 9, 16] },
+        "west": { "texture": "#pole", "uv": [7, 0, 9, 16] },
+        "east": { "texture": "#pole", "uv": [7, 0, 9, 16] }
+      }
+    }
+  ]
 }

@@ -10,9 +10,9 @@ import ivorius.yegamolchattels.multiblock.IvTileEntityMultiBlock;
 import ivorius.yegamolchattels.blocks.Statue;
 import ivorius.yegamolchattels.blocks.TileEntityStatue;
 import net.minecraft.block.Block;
-import net.minecraft.client.resources.I18n;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityList;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemBlock;
@@ -22,6 +22,7 @@ import net.minecraft.util.EnumActionResult;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.NonNullList;
+import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
@@ -94,12 +95,21 @@ public class ItemStatue extends ItemBlock
         String base = getTranslationKey(par1ItemStack) + ".base";
 
         String entityName = getStatueEntityID(par1ItemStack);
-        String localizedEntityName = entityName != null && entityName.length() > 0 ? I18n.format("entity." + entityName + ".name") : I18n.format("tile.ygcStatue.unknown");
+        String localizedEntityName = net.minecraft.util.text.translation.I18n.translateToLocal("tile.ygcStatue.unknown");
+
+        if (entityName != null && entityName.length() > 0)
+        {
+            String translationName = EntityList.getTranslationName(new ResourceLocation(entityName));
+            if (translationName != null && translationName.length() > 0)
+                localizedEntityName = net.minecraft.util.text.translation.I18n.translateToLocal("entity." + translationName + ".name");
+        }
 
         Statue.BlockFragment blockFragment = getStatueBlockFragment(par1ItemStack);
-        String localizedBlockName = blockFragment != null ? new ItemStack(blockFragment.getBlock(), 1, blockFragment.getMetadata()).getDisplayName() : I18n.format("tile.ygcStatue.nomaterial");
+        String localizedBlockName = blockFragment != null
+                ? new ItemStack(blockFragment.getBlock(), 1, blockFragment.getMetadata()).getDisplayName()
+                : net.minecraft.util.text.translation.I18n.translateToLocal("tile.ygcStatue.nomaterial");
 
-        return I18n.format(base, localizedEntityName, localizedBlockName);
+        return net.minecraft.util.text.translation.I18n.translateToLocalFormatted(base, localizedEntityName, localizedBlockName);
     }
 
     @Override

@@ -1,6 +1,44 @@
 {
-  "parent": "block/cube_all",
   "textures": {
-    "all": "yegamolchattels:blocks/treasure_pile"
-  }
+    "particle": "yegamolchattels:blocks/treasure_pile",
+    "pile": "yegamolchattels:blocks/treasure_pile"
+  },
+  "elements": [
+    {
+      "from": [2, 0, 2],
+      "to": [14, 5, 14],
+      "faces": {
+        "down": { "texture": "#pile", "uv": [2, 2, 14, 14] },
+        "up": { "texture": "#pile", "uv": [2, 2, 14, 14] },
+        "north": { "texture": "#pile", "uv": [2, 11, 14, 16] },
+        "south": { "texture": "#pile", "uv": [2, 11, 14, 16] },
+        "west": { "texture": "#pile", "uv": [2, 11, 14, 16] },
+        "east": { "texture": "#pile", "uv": [2, 11, 14, 16] }
+      }
+    },
+    {
+      "from": [4, 5, 4],
+      "to": [12, 8, 12],
+      "faces": {
+        "down": { "texture": "#pile", "uv": [4, 4, 12, 12] },
+        "up": { "texture": "#pile", "uv": [4, 4, 12, 12] },
+        "north": { "texture": "#pile", "uv": [4, 8, 12, 11] },
+        "south": { "texture": "#pile", "uv": [4, 8, 12, 11] },
+        "west": { "texture": "#pile", "uv": [4, 8, 12, 11] },
+        "east": { "texture": "#pile", "uv": [4, 8, 12, 11] }
+      }
+    },
+    {
+      "from": [6, 8, 6],
+      "to": [13, 10, 13],
+      "faces": {
+        "down": { "texture": "#pile", "uv": [6, 6, 10, 10] },
+        "up": { "texture": "#pile", "uv": [6, 6, 10, 10] },
+        "north": { "texture": "#pile", "uv": [6, 6, 10, 8] },
+        "south": { "texture": "#pile", "uv": [6, 6, 10, 8] },
+        "west": { "texture": "#pile", "uv": [6, 6, 10, 8] },
+        "east": { "texture": "#pile", "uv": [6, 6, 10, 8] }
+      }
+    }
+  ]
 }

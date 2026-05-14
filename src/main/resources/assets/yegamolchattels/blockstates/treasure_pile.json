@@ -1,5 +1,9 @@
 {
-  "variants": {
-    "normal": { "model": "yegamolchattels:treasure_pile" }
-  }
+  "multipart": [
+    { "apply": { "model": "yegamolchattels:treasure_pile" } },
+    { "when": { "north": "true" }, "apply": { "model": "yegamolchattels:treasure_pile_side" } },
+    { "when": { "east": "true" }, "apply": { "model": "yegamolchattels:treasure_pile_side", "y": 90 } },
+    { "when": { "south": "true" }, "apply": { "model": "yegamolchattels:treasure_pile_side", "y": 180 } },
+    { "when": { "west": "true" }, "apply": { "model": "yegamolchattels:treasure_pile_side", "y": 270 } }
+  ]
 }

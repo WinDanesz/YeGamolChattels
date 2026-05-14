@@ -43,9 +43,14 @@ public class ItemEntityVita extends Item
         String base = getTranslationKey(par1ItemStack) + ".base";
 
         String entityName = getEntityID(par1ItemStack);
-        String localizedEntityName = entityName != null && entityName.length() > 0
-                ? net.minecraft.util.text.translation.I18n.translateToLocal("entity." + entityName + ".name")
-                : net.minecraft.util.text.translation.I18n.translateToLocal("tile.ygcStatue.unknown");
+        String localizedEntityName = net.minecraft.util.text.translation.I18n.translateToLocal("tile.ygcStatue.unknown");
+
+        if (entityName != null && entityName.length() > 0)
+        {
+            String translationName = EntityList.getTranslationName(new ResourceLocation(entityName));
+            if (translationName != null && translationName.length() > 0)
+                localizedEntityName = net.minecraft.util.text.translation.I18n.translateToLocal("entity." + translationName + ".name");
+        }
 
         return net.minecraft.util.text.translation.I18n.translateToLocalFormatted(base, localizedEntityName);
     }
