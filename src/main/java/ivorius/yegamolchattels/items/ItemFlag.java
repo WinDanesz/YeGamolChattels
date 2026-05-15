@@ -49,6 +49,8 @@ public class ItemFlag extends Item
         entityflag.setPosition(placePos.getX(), placePos.getY(), placePos.getZ());
         entityflag.setColor(stack.getMetadata());
         entityflag.setSize(flagSize);
+        entityflag.rotationYaw = (player.rotationYaw + 180.0f) % 360.0f;
+        entityflag.prevRotationYaw = entityflag.rotationYaw;
 
         if (entityflag.canStayAtPosition())
         {

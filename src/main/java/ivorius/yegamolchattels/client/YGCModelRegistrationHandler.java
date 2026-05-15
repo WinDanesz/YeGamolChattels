@@ -19,6 +19,8 @@ import net.minecraftforge.fml.relauncher.Side;
 @Mod.EventBusSubscriber(value = Side.CLIENT, modid = YeGamolChattels.MODID)
 public class YGCModelRegistrationHandler
 {
+    private static final String[] WOOD_VARIANT_NAMES = {"oak", "spruce", "birch", "jungle", "acacia", "big_oak"};
+
     private YGCModelRegistrationHandler() {}
 
     @SubscribeEvent
@@ -35,6 +37,11 @@ public class YGCModelRegistrationHandler
         registerFromBlock(YGCBlocks.gong_medium,      "gong_medium");
         registerFromBlock(YGCBlocks.gong_large,       "gong_large");
         registerSubtypedFromBlock(YGCBlocks.pedestal,  "pedestal_", 5);
+        registerFromBlock(YGCBlocks.item_shelf,       "item_shelf");
+        registerFromBlock(YGCBlocks.snow_globe,       "snow_globe");
+        registerFromBlock(YGCBlocks.plank_saw,        "plank_saw");
+        registerFromBlock(YGCBlocks.table_press,      "table_press");
+        registerFromBlock(YGCBlocks.loot_chest,       "loot_chest");
 
         // Standalone items — looked up directly from the registry to avoid
         // @ObjectHolder injection-timing issues
@@ -45,15 +52,23 @@ public class YGCModelRegistrationHandler
         registerFromRegistry("grindstonestone", "grindstonestone");
         registerFromRegistry("mallet",          "mallet");
         registerFromRegistry("entity_vita",     "entity_vita");
+        registerMetaModelsFromRegistry("plank", "plank_", WOOD_VARIANT_NAMES);
+        registerMetaModelsFromRegistry("smooth_plank", "plank_smooth_", WOOD_VARIANT_NAMES);
+        registerMetaModelsFromRegistry("refined_plank", "plank_refined_", WOOD_VARIANT_NAMES);
+        registerFromRegistry("iron_saw", "iron_saw");
+        registerFromRegistry("sandpaper", "sandpaper");
+        registerFromRegistry("linseed_oil", "linseed_oil");
+        registerFromRegistry("flax_seeds", "flax_seeds");
+        registerFromRegistry("flax_fiber", "flax_fiber");
     }
 
     @SubscribeEvent
     public static void onItemColors(ColorHandlerEvent.Item event)
     {
-        registerClothTint(event, YGCItems.bannerSmall);
-        registerClothTint(event, YGCItems.bannerLarge);
-        registerClothTint(event, YGCItems.flagSmall);
-        registerClothTint(event, YGCItems.flagLarge);
+        registerClothTintFromRegistry(event, "bannerSmall");
+        registerClothTintFromRegistry(event, "bannerLarge");
+        registerClothTintFromRegistry(event, "flagSmall");
+        registerClothTintFromRegistry(event, "flagLarge");
 
         if (YGCItems.entityVita != null)
         {
@@ -108,6 +123,11 @@ public class YGCModelRegistrationHandler
                 item);
     }
 
+    private static void registerClothTintFromRegistry(ColorHandlerEvent.Item event, String registryName)
+    {
+        registerClothTint(event, ForgeRegistries.ITEMS.getValue(new ResourceLocation(YeGamolChattels.MODID, registryName)));
+    }
+
     private static void registerSubtypedFromRegistry(String registryName, String modelName, int variants)
     {
         Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(YeGamolChattels.MODID, registryName));
@@ -117,5 +137,18 @@ public class YGCModelRegistrationHandler
         ModelResourceLocation location = new ModelResourceLocation(YeGamolChattels.MODID + ":" + modelName, "inventory");
         for (int meta = 0; meta < variants; meta++)
             ModelLoader.setCustomModelResourceLocation(item, meta, location);
+    }
+
+    private static void registerMetaModelsFromRegistry(String registryName, String modelPrefix, String[] suffixes)
+    {
+        Item item = ForgeRegistries.ITEMS.getValue(new ResourceLocation(YeGamolChattels.MODID, registryName));
+        if (item == null)
+            return;
+
+        for (int meta = 0; meta < suffixes.length; meta++)
+        {
+            ModelLoader.setCustomModelResourceLocation(item, meta,
+                    new ModelResourceLocation(YeGamolChattels.MODID + ":" + modelPrefix + suffixes[meta], "inventory"));
+        }
     }
 }

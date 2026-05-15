@@ -66,9 +66,8 @@ public class RenderFlag extends Render<EntityFlag>
             tessellator.draw();
         }
 
-        float thickness = renderManager.options.fancyGraphics ? (0.015f + (sizeY - 1) * 0.004f) : 0.0f;
-        float xMul = MathHelper.sin(wind * (float) Math.PI * 0.5f);
-        float yMul = MathHelper.cos(wind * (float) Math.PI * 0.5f);
+        float thickness = renderManager.options.fancyGraphics ? (0.015f + (sizeY - 1) * 0.004f) : 0.0125f;
+        float clothLength = sizeY * 0.9f;
         int segments = renderManager.options.fancyGraphics ? 32 : 8;
 
         GlStateManager.pushMatrix();
@@ -90,12 +89,12 @@ public class RenderFlag extends Render<EntityFlag>
         {
             double ratio = (xSegment + 0.001) / (double) segments;
             double ratio1 = (xSegment + 0.999) / (double) segments;
-            double x0 = sizeY * ratio;
-            double x1 = sizeY * ratio1;
-            double z0 = MathHelper.sin((float) ((ratio * 2.5 - ticks * 0.06) * Math.PI)) * sizeY * ratio * 0.05 * wind;
-            z0 += MathHelper.sin((float) (ratio * 25.5)) * sizeY * ratio * 0.06 * folding;
-            double z1 = MathHelper.sin((float) ((ratio1 * 2.5 - ticks * 0.06) * Math.PI)) * sizeY * ratio1 * 0.05 * wind;
-            z1 += MathHelper.sin((float) (ratio1 * 25.5)) * sizeY * ratio1 * 0.06 * folding;
+            double x0 = clothLength * ratio;
+            double x1 = clothLength * ratio1;
+            double z0 = MathHelper.sin((float) ((ratio * 2.5 - ticks * 0.06) * Math.PI)) * sizeY * 0.08 * wind;
+            z0 += MathHelper.sin((float) (ratio * 25.5)) * sizeY * ratio * 0.05 * folding;
+            double z1 = MathHelper.sin((float) ((ratio1 * 2.5 - ticks * 0.06) * Math.PI)) * sizeY * 0.08 * wind;
+            z1 += MathHelper.sin((float) (ratio1 * 25.5)) * sizeY * ratio1 * 0.05 * folding;
             double segmentTexX0 = texX0 + (texX1 - texX0) * ratio;
             double segmentTexX1 = texX0 + (texX1 - texX0) * ratio1;
 
@@ -103,12 +102,14 @@ public class RenderFlag extends Render<EntityFlag>
             {
                 double ratioY = ySegment / (double) segments;
                 double ratioY1 = (ySegment + 1.0) / segments;
-                double y0 = ratioY * sizeY - x0 * yMul;
-                double y1 = ratioY * sizeY - x1 * yMul;
+                double sag0 = ratio * ratio * sizeY * (0.12 + wind * 0.08);
+                double sag1 = ratio1 * ratio1 * sizeY * (0.12 + wind * 0.08);
+                double y0 = ratioY * sizeY - sag0;
+                double y1 = ratioY * sizeY - sag1;
                 double segmentTexY0 = texY0 + (texY1 - texY0) * ratioY;
                 double segmentTexY1 = texY0 + (texY1 - texY0) * ratioY1;
 
-                renderSegment(buffer, x0 * xMul, y0, y1, z0, z1, sizeY * xMul / segments, sizeY / segments, thickness, segmentTexX0, segmentTexY0, segmentTexX1, segmentTexY1);
+                renderSegment(buffer, x0, y0, y1, z0, z1, clothLength / segments, sizeY / segments, thickness, segmentTexX0, segmentTexY0, segmentTexX1, segmentTexY1);
             }
         }
         tessellator.draw();

@@ -32,7 +32,7 @@ public class BlockSawBench extends IvBlockMultiblock
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return EnumBlockRenderType.MODEL;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override

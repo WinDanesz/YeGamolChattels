@@ -1,6 +1,6 @@
 {
   "parent": "block/cube_all",
   "textures": {
-    "all": "minecraft:blocks/stone"
+    "all": "yegamolchattels:mod/table_press"
   }
 }

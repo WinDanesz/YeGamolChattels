@@ -75,22 +75,21 @@ public final class YGCItems
         Item malletItem = new Item().setMaxStackSize(1);
         registerItem(registry, "mallet", "mallet", malletItem, YGCCreativeTabs.tabMain);
         registerItemBlock(registry, YGCBlocks.pedestal, new ItemPedestal(YGCBlocks.pedestal));
-       // registerItemBlock(registry, YGCBlocks.itemShelf, new ItemItemShelf(YGCBlocks.itemShelf));
-//        registerItemBlock(registry, YGCBlocks.snowGlobe);
-//        registerItem(registry, "plank", "plank", new ItemPlank().setHasSubtypes(true).setMaxDamage(0), YGCCreativeTabs.tabMain);
-//        registerItem(registry, "smooth_plank", "smoothPlank", new ItemPlank().setHasSubtypes(true).setMaxDamage(0), YGCCreativeTabs.tabMain);
-//        registerItem(registry, "refined_plank", "refinedPlank", new ItemPlank().setHasSubtypes(true).setMaxDamage(0), YGCCreativeTabs.tabMain);
-//        registerItemBlock(registry, YGCBlocks.sawBench, new ItemSawBench(YGCBlocks.sawBench));
-//        registerItemBlock(registry, YGCBlocks.tablePress, new ItemTablePress(YGCBlocks.tablePress));
-//        Item sandpaperItem = new Item().setMaxDamage(2048).setMaxStackSize(1).setNoRepair();
-//        registerItem(registry, "sandpaper", "sandpaper", sandpaperItem, YGCCreativeTabs.tabMain);
-//        Item linseedOilItem = new Item().setMaxDamage(2048).setMaxStackSize(1).setNoRepair();
-//        registerItem(registry, "linseed_oil", "ygcLinseedOil", linseedOilItem, YGCCreativeTabs.tabMain);
-//        Item ironSawItem = new ItemSaw().setMaxDamage(128).setMaxStackSize(1);
-//        registerItem(registry, "iron_saw", "ygcSaw", ironSawItem, YGCCreativeTabs.tabMain);
-//        registerItemBlock(registry, YGCBlocks.flaxPlant);
-//        registerItem(registry, "flax_seeds", "ygcFlaxSeeds", new ItemFlaxSeeds(YGCBlocks.flaxPlant, Blocks.FARMLAND), YGCCreativeTabs.tabMain);
-//        registerItem(registry, "flax_fiber", "ygcFlaxFiber", new Item(), YGCCreativeTabs.tabMain);
+        registerItemBlock(registry, YGCBlocks.item_shelf);
+        registerItemBlock(registry, YGCBlocks.snow_globe);
+        registerItem(registry, "plank", "plank", new ItemPlank().setMaxDamage(0), YGCCreativeTabs.tabMain);
+        registerItem(registry, "smooth_plank", "smoothPlank", new ItemPlank().setMaxDamage(0), YGCCreativeTabs.tabMain);
+        registerItem(registry, "refined_plank", "refinedPlank", new ItemPlank().setMaxDamage(0), YGCCreativeTabs.tabMain);
+        registerItemBlock(registry, YGCBlocks.plank_saw, new ItemSawBench(YGCBlocks.plank_saw));
+        registerItemBlock(registry, YGCBlocks.table_press, new ItemTablePress(YGCBlocks.table_press));
+        Item sandpaperItem = new Item().setMaxDamage(2048).setMaxStackSize(1).setNoRepair();
+        registerItem(registry, "sandpaper", "sandpaper", sandpaperItem, YGCCreativeTabs.tabMain);
+        Item linseedOilItem = new Item().setMaxDamage(2048).setMaxStackSize(1).setNoRepair();
+        registerItem(registry, "linseed_oil", "ygcLinseedOil", linseedOilItem, YGCCreativeTabs.tabMain);
+        Item ironSawItem = new ItemSaw().setMaxDamage(128).setMaxStackSize(1);
+        registerItem(registry, "iron_saw", "ygcSaw", ironSawItem, YGCCreativeTabs.tabMain);
+        registerItem(registry, "flax_seeds", "ygcFlaxSeeds", new ItemFlaxSeeds(YGCBlocks.flax_plant, Blocks.FARMLAND), YGCCreativeTabs.tabMain);
+        registerItem(registry, "flax_fiber", "ygcFlaxFiber", new Item(), YGCCreativeTabs.tabMain);
 //        registerItemBlock(registry, YGCBlocks.microBlock, new ItemMicroBlock(YGCBlocks.microBlock));
 //        Item detailChisel = new ItemChisel(0, 1.0f, 0.0f, Item.ToolMaterial.IRON, Collections.emptySet(), true).setMaxDamage(256).setMaxStackSize(1).setNoRepair();
 //        registerItem(registry, "iron_chisel_point", "ygcChiselIron_point", detailChisel, YGCCreativeTabs.tabMain);
@@ -99,7 +98,7 @@ public final class YGCItems
 //        ItemClubHammer hammer = (ItemClubHammer) new ItemClubHammer(0.0f, Item.ToolMaterial.IRON, Collections.emptySet()).setMaxDamage(512).setMaxStackSize(1).setNoRepair();
 //        registerItem(registry, "club_hammer", "ygcClubHammer", hammer, YGCCreativeTabs.tabMain);
 //        registerItem(registry, "block_fragment", "ygcBlockFragment", new ItemBlockFragment(), null);
-//        registerItemBlock(registry, YGCBlocks.lootChest);
+        registerItemBlock(registry, YGCBlocks.loot_chest);
     }
 
     private static <T extends Item> T registerItem(IForgeRegistry<Item> registry, String name, String translationKey, T item, net.minecraft.creativetab.CreativeTabs creativeTab)

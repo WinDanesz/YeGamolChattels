@@ -139,6 +139,8 @@ public class EntityFlag extends Entity implements IEntityAdditionalSpawnData
         setPosition(tag.getInteger("TileX"), tag.getInteger("TileY"), tag.getInteger("TileZ"));
         setSize(tag.getInteger("FlagSize"));
         setColor(tag.getInteger("FlagColor"));
+        rotationYaw = tag.getFloat("FlagYaw");
+        prevRotationYaw = rotationYaw;
         updateBounds();
     }
 
@@ -150,6 +152,7 @@ public class EntityFlag extends Entity implements IEntityAdditionalSpawnData
         tag.setInteger("TileZ", MathHelper.floor(posZ));
         tag.setInteger("FlagSize", getSize());
         tag.setInteger("FlagColor", getColor());
+        tag.setFloat("FlagYaw", rotationYaw);
     }
 
     @Override

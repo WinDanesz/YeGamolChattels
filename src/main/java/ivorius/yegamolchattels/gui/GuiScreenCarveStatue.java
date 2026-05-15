@@ -9,8 +9,10 @@ import ivorius.yegamolchattels.network.PacketGuiAction;
 import ivorius.yegamolchattels.YeGamolChattels;
 import ivorius.yegamolchattels.blocks.Statue;
 import ivorius.yegamolchattels.blocks.StatueHelper;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.inventory.GuiContainer;
+import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.entity.RenderManager;
@@ -131,7 +133,25 @@ public class GuiScreenCarveStatue extends GuiContainer implements GuiControlList
 
     public static void renderEntity(int x, int y, float scale, Entity entity)
     {
-        // Temporarily disabled during compile-driven porting.
+        GlStateManager.enableColorMaterial();
+        GlStateManager.pushMatrix();
+        GlStateManager.translate((float) x, (float) y, 50.0f);
+        GlStateManager.scale(-scale, scale, scale);
+        GlStateManager.rotate(180.0f, 0.0f, 0.0f, 1.0f);
+
+        RenderHelper.enableStandardItemLighting();
+        RenderManager renderManager = Minecraft.getMinecraft().getRenderManager();
+        renderManager.setPlayerViewY(180.0f);
+        renderManager.setRenderShadow(false);
+        renderManager.renderEntity(entity, 0.0, 0.0, 0.0, 0.0f, 1.0f, false);
+        renderManager.setRenderShadow(true);
+        RenderHelper.disableStandardItemLighting();
+
+        GlStateManager.popMatrix();
+        GlStateManager.disableRescaleNormal();
+        GlStateManager.setActiveTexture(OpenGlHelper.lightmapTexUnit);
+        GlStateManager.disableTexture2D();
+        GlStateManager.setActiveTexture(OpenGlHelper.defaultTexUnit);
     }
 
     @Override

@@ -27,7 +27,7 @@ public class BlockSnowGlobe extends Block
     @Override
     public EnumBlockRenderType getRenderType(IBlockState state)
     {
-        return EnumBlockRenderType.MODEL;
+        return EnumBlockRenderType.INVISIBLE;
     }
 
     @Override

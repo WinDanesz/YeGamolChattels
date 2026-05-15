@@ -33,7 +33,9 @@ public class ItemBanner extends Item
             return EnumActionResult.FAIL;
 
         ItemStack stack = player.getHeldItem(hand);
-        BlockPos spawnPos = bannerSize == 2 ? pos.down(2) : pos;
+        BlockPos spawnPos = pos.offset(facing);
+        if (bannerSize == 2)
+            spawnPos = spawnPos.down(2);
         EntityBanner banner = new EntityBanner(world, spawnPos.getX(), spawnPos.getY(), spawnPos.getZ(), facing.getHorizontalIndex(), bannerSize, stack.getMetadata());
 
         if (!player.canPlayerEdit(spawnPos, facing, stack))

@@ -2,6 +2,7 @@ package ivorius.yegamolchattels.client;
 
 import ivorius.yegamolchattels.YGCProxy;
 import ivorius.yegamolchattels.blocks.*;
+import ivorius.yegamolchattels.entities.EntityBanner;
 import ivorius.yegamolchattels.client.rendering.*;
 import ivorius.yegamolchattels.entities.EntityFlag;
 import net.minecraft.client.Minecraft;
@@ -19,6 +20,7 @@ public class ClientProxy implements YGCProxy
     @Override
     public void registerRenderers()
     {
+        RenderingRegistry.registerEntityRenderingHandler(EntityBanner.class, RenderBanner::new);
         RenderingRegistry.registerEntityRenderingHandler(EntityFlag.class, RenderFlag::new);
 
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStatue.class,          new TileEntityRendererStatue());
