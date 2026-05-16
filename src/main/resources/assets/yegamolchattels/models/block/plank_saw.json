@@ -1,6 +1,3 @@
 {
-  "parent": "block/cube_all",
-  "textures": {
-    "all": "yegamolchattels:mod/saw_bench"
-  }
+  "parent": "builtin/entity"
 }

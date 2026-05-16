@@ -28,12 +28,16 @@ public final class YGCItems
     public static final Item grindstoneStone = placeholder();
     public static final Item mallet = placeholder();
     public static final Item plank = placeholder();
+    @ObjectHolder("smooth_plank")
     public static final Item smoothPlank = placeholder();
+    @ObjectHolder("refined_plank")
     public static final Item refinedPlank = placeholder();
     public static final Item ironSaw = placeholder();
     public static final Item sandpaper = placeholder();
     public static final Item linseedOil = placeholder();
+    @ObjectHolder("flax_seeds")
     public static final Item flaxSeeds = placeholder();
+    @ObjectHolder("flax_fiber")
     public static final Item flaxFiber = placeholder();
     public static final ItemClubHammer clubHammer = placeholder();
     public static final Item blockFragment = placeholder();

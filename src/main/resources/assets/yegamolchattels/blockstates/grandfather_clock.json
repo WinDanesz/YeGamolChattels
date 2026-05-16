@@ -1,5 +1,12 @@
 {
   "variants": {
-    "normal": { "model": "yegamolchattels:grandfather_clock" }
+    "part=lower,rotation=0": { "model": "yegamolchattels:grandfather_clock" },
+    "part=lower,rotation=1": { "model": "yegamolchattels:grandfather_clock" },
+    "part=lower,rotation=2": { "model": "yegamolchattels:grandfather_clock" },
+    "part=lower,rotation=3": { "model": "yegamolchattels:grandfather_clock" },
+    "part=upper,rotation=0": { "model": "yegamolchattels:grandfather_clock" },
+    "part=upper,rotation=1": { "model": "yegamolchattels:grandfather_clock" },
+    "part=upper,rotation=2": { "model": "yegamolchattels:grandfather_clock" },
+    "part=upper,rotation=3": { "model": "yegamolchattels:grandfather_clock" }
   }
 }

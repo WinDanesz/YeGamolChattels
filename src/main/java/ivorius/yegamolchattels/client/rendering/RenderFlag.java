@@ -29,9 +29,12 @@ public class RenderFlag extends Render<EntityFlag>
         if (entity.world == null)
             return;
 
+        float yaw = entity.prevRotationYaw + (entity.rotationYaw - entity.prevRotationYaw) * partialTicks;
+
+        GlStateManager.enableTexture2D();
         GlStateManager.pushMatrix();
         GlStateManager.translate(x + 0.5F, y, z + 0.5F);
-        GlStateManager.rotate(entityYaw, 0.0F, 1.0F, 0.0F);
+        GlStateManager.rotate(yaw, 0.0F, 1.0F, 0.0F);
         GlStateManager.enableRescaleNormal();
         renderFlag(entity, partialTicks);
         GlStateManager.disableRescaleNormal();
@@ -66,9 +69,9 @@ public class RenderFlag extends Render<EntityFlag>
             tessellator.draw();
         }
 
-        float thickness = renderManager.options.fancyGraphics ? (0.015f + (sizeY - 1) * 0.004f) : 0.0125f;
-        float clothLength = sizeY * 0.9f;
-        int segments = renderManager.options.fancyGraphics ? 32 : 8;
+        float clothWidth = sizeY * 0.9f;
+        float sagFactor = 0.18f + wind * 0.1f;
+        int segments = renderManager.options.fancyGraphics ? 24 : 10;
 
         GlStateManager.pushMatrix();
         GlStateManager.rotate(180.0f, 0.0F, 1.0F, 0.0F);
@@ -81,16 +84,15 @@ public class RenderFlag extends Render<EntityFlag>
         double texY1 = ((entity.getColor() >> 2) + 0.999) / 4.0;
         double folding = Math.max(0.0, 1.0 - wind * 4.0);
 
-        bindTexture(CLOTH_TEXTURE);
         setLight(entity, MathHelper.floor(entity.posX), MathHelper.floor(entity.posY + sizeY), MathHelper.floor(entity.posZ));
         GlStateManager.disableCull();
+        bindTexture(CLOTH_TEXTURE);
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
         for (int xSegment = 0; xSegment < segments; xSegment++)
         {
             double ratio = (xSegment + 0.001) / (double) segments;
             double ratio1 = (xSegment + 0.999) / (double) segments;
-            double x0 = clothLength * ratio;
-            double x1 = clothLength * ratio1;
+            double x0 = clothWidth * ratio;
             double z0 = MathHelper.sin((float) ((ratio * 2.5 - ticks * 0.06) * Math.PI)) * sizeY * 0.08 * wind;
             z0 += MathHelper.sin((float) (ratio * 25.5)) * sizeY * ratio * 0.05 * folding;
             double z1 = MathHelper.sin((float) ((ratio1 * 2.5 - ticks * 0.06) * Math.PI)) * sizeY * 0.08 * wind;
@@ -102,14 +104,12 @@ public class RenderFlag extends Render<EntityFlag>
             {
                 double ratioY = ySegment / (double) segments;
                 double ratioY1 = (ySegment + 1.0) / segments;
-                double sag0 = ratio * ratio * sizeY * (0.12 + wind * 0.08);
-                double sag1 = ratio1 * ratio1 * sizeY * (0.12 + wind * 0.08);
-                double y0 = ratioY * sizeY - sag0;
-                double y1 = ratioY * sizeY - sag1;
+                double y0 = ratioY * sizeY - ratio * ratio * sizeY * sagFactor;
+                double y1 = ratioY * sizeY - ratio1 * ratio1 * sizeY * sagFactor;
                 double segmentTexY0 = texY0 + (texY1 - texY0) * ratioY;
                 double segmentTexY1 = texY0 + (texY1 - texY0) * ratioY1;
 
-                renderSegment(buffer, x0, y0, y1, z0, z1, clothLength / segments, sizeY / segments, thickness, segmentTexX0, segmentTexY0, segmentTexX1, segmentTexY1);
+                renderSheetSegment(buffer, x0, y0, y1, z0, z1, clothWidth / segments, sizeY / segments, segmentTexX0, segmentTexY0, segmentTexX1, segmentTexY1);
             }
         }
         tessellator.draw();
@@ -141,6 +141,27 @@ public class RenderFlag extends Render<EntityFlag>
             addQuad(buffer, xMin, y + sizeY, z + sizeZ, xMin, y + sizeY, z - sizeZ, xMin, y, z - sizeZ, xMin, y, z + sizeZ, texX1, texY1, texX, texY1, texX, texY, texX1, texY, -1.0F, 0.0F, 0.0F);
             addQuad(buffer, xMax, y1, z1 - sizeZ, xMax, y1 + sizeY, z1 - sizeZ, xMax, y1 + sizeY, z1 + sizeZ, xMax, y1, z1 + sizeZ, texX, texY, texX, texY1, texX1, texY1, texX1, texY, 1.0F, 0.0F, 0.0F);
         }
+    }
+
+    private static void renderSheetSegment(BufferBuilder buffer, double x, double y, double y1, double z, double z1, double sizeX, double sizeY, double texX, double texY, double texX1, double texY1)
+    {
+        double xMax = x + sizeX;
+
+        addQuad(buffer,
+                xMax, y1, z1,
+                x, y, z,
+                x, y + sizeY, z,
+                xMax, y1 + sizeY, z1,
+                texX1, texY, texX, texY, texX, texY1, texX1, texY1,
+                0.0F, 0.0F, -1.0F);
+
+        addQuad(buffer,
+                x, y + sizeY, z,
+                x, y, z,
+                xMax, y1, z1,
+                xMax, y1 + sizeY, z1,
+                texX, texY1, texX, texY, texX1, texY, texX1, texY1,
+                0.0F, 0.0F, 1.0F);
     }
 
     private static void addQuad(BufferBuilder buffer,

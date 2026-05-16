@@ -1,5 +1,8 @@
 {
   "variants": {
-    "normal": { "model": "yegamolchattels:grindstone" }
+    "rotation=0": { "model": "yegamolchattels:grindstone" },
+    "rotation=1": { "model": "yegamolchattels:grindstone" },
+    "rotation=2": { "model": "yegamolchattels:grindstone" },
+    "rotation=3": { "model": "yegamolchattels:grindstone" }
   }
 }
