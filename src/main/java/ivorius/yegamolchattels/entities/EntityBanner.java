@@ -1,5 +1,6 @@
 package ivorius.yegamolchattels.entities;
 
+import io.netty.buffer.ByteBuf;
 import ivorius.yegamolchattels.items.YGCItems;
 import net.minecraft.block.BlockRedstoneDiode;
 import net.minecraft.block.state.IBlockState;
@@ -16,10 +17,11 @@ import net.minecraft.util.EnumFacing;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraftforge.fml.common.registry.IEntityAdditionalSpawnData;
 
 import java.util.List;
 
-public class EntityBanner extends EntityHanging
+public class EntityBanner extends EntityHanging implements IEntityAdditionalSpawnData
 {
     private static final DataParameter<Integer> BANNER_SIZE = EntityDataManager.createKey(EntityBanner.class, DataSerializers.VARINT);
     private static final DataParameter<Integer> BANNER_COLOR = EntityDataManager.createKey(EntityBanner.class, DataSerializers.VARINT);
@@ -90,11 +92,29 @@ public class EntityBanner extends EntityHanging
     }
 
     @Override
+    public void writeSpawnData(ByteBuf buffer)
+    {
+        buffer.writeInt(hangingPosition.getX());
+        buffer.writeInt(hangingPosition.getY());
+        buffer.writeInt(hangingPosition.getZ());
+        buffer.writeInt(facingDirection != null ? facingDirection.getHorizontalIndex() : 0);
+        buffer.writeInt(getSize());
+    }
+
+    @Override
+    public void readSpawnData(ByteBuf buffer)
+    {
+        this.hangingPosition = new BlockPos(buffer.readInt(), buffer.readInt(), buffer.readInt());
+        int facingIdx = buffer.readInt();
+        setSize(buffer.readInt());
+        updateFacingWithBoundingBox(EnumFacing.byHorizontalIndex(facingIdx));
+    }
+
+    @Override
     public void writeEntityToNBT(NBTTagCompound tag)
     {
         tag.setInteger("BannerColor", getColor());
         tag.setInteger("BannerSize", getSize());
-        tag.setInteger("FacingDirection", facingDirection != null ? facingDirection.getIndex() : 2);
         super.writeEntityToNBT(tag);
     }
 
@@ -104,10 +124,6 @@ public class EntityBanner extends EntityHanging
         super.readEntityFromNBT(tag);
         setColor(tag.getInteger("BannerColor"));
         setSize(tag.getInteger("BannerSize"));
-        if (tag.hasKey("FacingDirection"))
-        {
-            updateFacingWithBoundingBox(EnumFacing.byIndex(tag.getInteger("FacingDirection")));
-        }
     }
 
     @Override

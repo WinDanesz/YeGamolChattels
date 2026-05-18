@@ -11,6 +11,7 @@ import net.minecraft.block.state.IBlockState;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
+import net.minecraft.util.BlockRenderLayer;
 import net.minecraft.util.EnumBlockRenderType;
 import net.minecraft.util.EnumFacing;
 import net.minecraft.util.EnumParticleTypes;
@@ -27,6 +28,9 @@ public class BlockTikiTorch extends Block
 {
     public static final PropertyEnum<Part> PART = PropertyEnum.create("part", Part.class);
 
+    private static final AxisAlignedBB AABB_LOWER = new AxisAlignedBB(0.4375, 0.0, 0.4375, 0.5625, 1.0, 0.5625);
+    private static final AxisAlignedBB AABB_UPPER = new AxisAlignedBB(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625);
+
     public BlockTikiTorch()
     {
         super(Material.CIRCUITS);
@@ -35,6 +39,12 @@ public class BlockTikiTorch extends Block
         setSoundType(SoundType.WOOD);
         setLightLevel(0.9375F);
         setDefaultState(blockState.getBaseState().withProperty(PART, Part.UPPER));
+    }
+
+    @Override
+    public AxisAlignedBB getBoundingBox(IBlockState state, IBlockAccess source, BlockPos pos)
+    {
+        return state.getValue(PART) == Part.LOWER ? AABB_LOWER : AABB_UPPER;
     }
 
     @Nullable
@@ -60,6 +70,12 @@ public class BlockTikiTorch extends Block
     public EnumBlockRenderType getRenderType(IBlockState state)
     {
         return EnumBlockRenderType.MODEL;
+    }
+
+    @Override
+    public BlockRenderLayer getRenderLayer()
+    {
+        return BlockRenderLayer.CUTOUT;
     }
 
     @Override
@@ -151,7 +167,7 @@ public class BlockTikiTorch extends Block
         if (state.getValue(PART) == Part.UPPER)
         {
             double x = pos.getX() + 0.5D;
-            double y = pos.getY() + 0.7D;
+            double y = pos.getY() + 0.79375D;
             double z = pos.getZ() + 0.5D;
             world.spawnParticle(EnumParticleTypes.SMOKE_NORMAL, x, y, z, 0.0D, 0.0D, 0.0D);
             world.spawnParticle(EnumParticleTypes.FLAME, x, y, z, 0.0D, 0.0D, 0.0D);

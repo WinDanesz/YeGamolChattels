@@ -1,37 +1,49 @@
 {
-  "textures": {
-    "particle": "yegamolchattels:blocks/tiki_torch_upper",
-    "pole": "yegamolchattels:blocks/tiki_torch",
-    "head": "minecraft:blocks/fire_layer_0"
-  },
-  "elements": [
-    {
-      "from": [7, 0, 7],
-      "to": [9, 10, 9],
-      "faces": {
-        "down": { "texture": "#pole", "uv": [7, 7, 9, 9] },
-        "up": { "texture": "#pole", "uv": [7, 7, 9, 9] },
-        "north": { "texture": "#pole", "uv": [7, 0, 9, 10] },
-        "south": { "texture": "#pole", "uv": [7, 0, 9, 10] },
-        "west": { "texture": "#pole", "uv": [7, 0, 9, 10] },
-        "east": { "texture": "#pole", "uv": [7, 0, 9, 10] }
-      }
-    },
-    {
-      "from": [4, 10, 7],
-      "to": [12, 14, 9],
-      "faces": {
-        "north": { "texture": "#head", "uv": [0, 0, 8, 4] },
-        "south": { "texture": "#head", "uv": [0, 0, 8, 4] }
-      }
-    },
-    {
-      "from": [7, 10, 4],
-      "to": [9, 14, 12],
-      "faces": {
-        "west": { "texture": "#head", "uv": [0, 0, 8, 4] },
-        "east": { "texture": "#head", "uv": [0, 0, 8, 4] }
-      }
-    }
-  ]
+	"format_version": "1.9.0",
+	"credit": "Made with Blockbench by WinDanesz",
+	"textures": {
+		"pole": "yegamolchattels:blocks/tiki_torch",
+		"particle": "yegamolchattels:blocks/tiki_torch_upper"
+	},
+	"elements": [
+		{
+			"from": [7, 0, 7],
+			"to": [9, 10, 9],
+			"faces": {
+				"north": {"uv": [7, 0, 9, 10], "texture": "#pole"},
+				"east": {"uv": [7, 0, 9, 10], "texture": "#pole"},
+				"south": {"uv": [7, 0, 9, 10], "texture": "#pole"},
+				"west": {"uv": [7, 0, 9, 10], "texture": "#pole"},
+				"up": {"uv": [7, 7, 9, 9], "texture": "#pole"},
+				"down": {"uv": [7, 7, 9, 9], "texture": "#pole"}
+			}
+		},
+		{
+			"from": [7, 10, 7],
+			"to": [9, 13, 9],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 10, 7]},
+			"faces": {
+				"north": {"uv": [7, 6, 9, 9], "texture": "#particle"},
+				"east": {"uv": [7, 6, 9, 9], "texture": "#particle"},
+				"south": {"uv": [7, 6, 9, 9], "texture": "#particle"},
+				"west": {"uv": [7, 6, 9, 9], "texture": "#particle"},
+				"up": {"uv": [7, 6, 9, 8], "texture": "#particle"},
+				"down": {"uv": [0, 0, 2, 2], "texture": "#missing"}
+			}
+		},
+		{
+			"from": [6, 9, 6],
+			"to": [10, 10, 10],
+			"rotation": {"angle": 0, "axis": "y", "origin": [7, 9, 8]},
+			"faces": {
+				"north": {"uv": [6, 9, 10, 10], "texture": "#particle"},
+				"east": {"uv": [6, 9, 10, 10], "texture": "#particle"},
+				"south": {"uv": [6, 9, 10, 10], "texture": "#particle"},
+				"west": {"uv": [6, 9, 10, 10], "texture": "#particle"},
+				"up": {"uv": [12, 6, 16, 10], "texture": "#particle"},
+				"down": {"uv": [12, 10, 16, 14], "texture": "#particle"}
+			}
+		}
+	],
+	"display": {}
 }

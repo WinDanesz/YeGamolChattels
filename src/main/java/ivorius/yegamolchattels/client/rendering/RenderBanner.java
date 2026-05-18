@@ -31,25 +31,20 @@ public class RenderBanner extends Render<EntityBanner>
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
         
-        // Apply position offset and rotation based on facing direction
+        // Apply rotation based on facing direction.
+        // updateFacingWithBoundingBox already positions the entity ~0.03 blocks in front of
+        // the wall face, so no additional translation toward/away from the wall is needed.
         if (entity.facingDirection != null)
         {
             switch(entity.facingDirection)
             {
-                case NORTH:
-                    GlStateManager.translate(0.0, 0.0, -0.5);
-                    GlStateManager.rotate(0.0f, 0.0F, 1.0F, 0.0F);
-                    break;
                 case SOUTH:
-                    GlStateManager.translate(0.0, 0.0, 0.5);
                     GlStateManager.rotate(180.0f, 0.0F, 1.0F, 0.0F);
                     break;
                 case WEST:
-                    GlStateManager.translate(-0.5, 0.0, 0.0);
                     GlStateManager.rotate(90.0f, 0.0F, 1.0F, 0.0F);
                     break;
                 case EAST:
-                    GlStateManager.translate(0.5, 0.0, 0.0);
                     GlStateManager.rotate(-90.0f, 0.0F, 1.0F, 0.0F);
                     break;
                 default:
