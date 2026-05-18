@@ -87,6 +87,10 @@ public class YeGamolChattels
         YGCMaterials.init();
 
         YGCRegistryHandler.init();
+
+        logger.info("Proxy in preInit: {}", proxy.getClass().getName());
+        proxy.registerRenderers();
+        logger.info("Renderer registration invoked from preInit");
     }
 
     @EventHandler
@@ -97,7 +101,7 @@ public class YeGamolChattels
         network.registerMessage(PacketGuiActionHandler.class, PacketGuiAction.class, 1, Side.SERVER);
         network.registerMessage(PacketTileEntityClientEventHandler.class, PacketTileEntityClientEvent.class, 2, Side.SERVER);
 
-        proxy.registerRenderers();
+        logger.info("Proxy in init: {}", proxy.getClass().getName());
 
         YGCCrafting.init();
         YGCAchievementList.init();

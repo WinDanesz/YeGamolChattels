@@ -8,6 +8,7 @@ package ivorius.yegamolchattels.server;
 import ivorius.yegamolchattels.YGCProxy;
 import net.minecraft.entity.player.EntityPlayer;
 
+  @SuppressWarnings("unused")
 public class ServerProxy implements YGCProxy
 {
     @Override

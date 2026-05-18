@@ -94,15 +94,20 @@ public class EntityBanner extends EntityHanging
     {
         tag.setInteger("BannerColor", getColor());
         tag.setInteger("BannerSize", getSize());
+        tag.setInteger("FacingDirection", facingDirection != null ? facingDirection.getIndex() : 2);
         super.writeEntityToNBT(tag);
     }
 
     @Override
     public void readEntityFromNBT(NBTTagCompound tag)
     {
+        super.readEntityFromNBT(tag);
         setColor(tag.getInteger("BannerColor"));
         setSize(tag.getInteger("BannerSize"));
-        super.readEntityFromNBT(tag);
+        if (tag.hasKey("FacingDirection"))
+        {
+            updateFacingWithBoundingBox(EnumFacing.byIndex(tag.getInteger("FacingDirection")));
+        }
     }
 
     @Override

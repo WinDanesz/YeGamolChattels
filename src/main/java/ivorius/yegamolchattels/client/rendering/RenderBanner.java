@@ -30,7 +30,33 @@ public class RenderBanner extends Render<EntityBanner>
     {
         GlStateManager.pushMatrix();
         GlStateManager.translate(x, y, z);
-        GlStateManager.rotate(entityYaw, 0.0F, 1.0F, 0.0F);
+        
+        // Apply position offset and rotation based on facing direction
+        if (entity.facingDirection != null)
+        {
+            switch(entity.facingDirection)
+            {
+                case NORTH:
+                    GlStateManager.translate(0.0, 0.0, -0.5);
+                    GlStateManager.rotate(0.0f, 0.0F, 1.0F, 0.0F);
+                    break;
+                case SOUTH:
+                    GlStateManager.translate(0.0, 0.0, 0.5);
+                    GlStateManager.rotate(180.0f, 0.0F, 1.0F, 0.0F);
+                    break;
+                case WEST:
+                    GlStateManager.translate(-0.5, 0.0, 0.0);
+                    GlStateManager.rotate(90.0f, 0.0F, 1.0F, 0.0F);
+                    break;
+                case EAST:
+                    GlStateManager.translate(0.5, 0.0, 0.0);
+                    GlStateManager.rotate(-90.0f, 0.0F, 1.0F, 0.0F);
+                    break;
+                default:
+                    break;
+            }
+        }
+        
         GlStateManager.enableRescaleNormal();
         bindEntityTexture(entity);
         GlStateManager.scale(0.0625F, 0.0625F, 0.0625F);
@@ -56,6 +82,7 @@ public class RenderBanner extends Render<EntityBanner>
         double xShift = -bannerWidth / 2.0;
         double yShift = -bannerHeight / 2.0;
 
+        GlStateManager.disableCull();
         buffer.begin(GL11.GL_QUADS, DefaultVertexFormats.POSITION_TEX_NORMAL);
         for (int x = 0; x < bannerWidth; x++)
         {
@@ -92,6 +119,7 @@ public class RenderBanner extends Render<EntityBanner>
             }
         }
         tessellator.draw();
+        GlStateManager.enableCull();
     }
 
     private void setLight(EntityHanging entity, float x, float y)

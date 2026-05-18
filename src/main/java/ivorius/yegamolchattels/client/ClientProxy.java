@@ -9,7 +9,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
+import ivorius.yegamolchattels.YeGamolChattels;
 
+@SuppressWarnings("unused")
 public class ClientProxy implements YGCProxy
 {
     @Override
@@ -20,8 +22,14 @@ public class ClientProxy implements YGCProxy
     @Override
     public void registerRenderers()
     {
+        if (YeGamolChattels.logger != null)
+            YeGamolChattels.logger.warn("ClientProxy.registerRenderers() called");
+
         RenderingRegistry.registerEntityRenderingHandler(EntityBanner.class, RenderBanner::new);
         RenderingRegistry.registerEntityRenderingHandler(EntityFlag.class, RenderFlag::new);
+
+        if (YeGamolChattels.logger != null)
+            YeGamolChattels.logger.warn("Registered entity renderers: EntityBanner -> RenderBanner, EntityFlag -> RenderFlag");
 
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStatue.class,          new TileEntityRendererStatue());
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityGrandfatherClock.class, new TileEntityRendererGrandfatherClock());
